@@ -1,0 +1,31 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Flickr-shmikr!</title>
+  <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
+  <script type="text/javascript" src="underscore-1.1.7.js"></script>
+  <script type="text/javascript" src="showkr.js"></script>
+</head>
+<body>
+  <form action="#">
+    <input type="text" name="url" placeholder="Enter url of a photoset">
+    <input type="submit">
+  </form>
+  
+  <script type="text/template" id="photo-template">
+    <h3><%= data.title %></h3>
+    <a href="<%= flickrUrl() %>"><img src="<%= url() %>"></a>
+  </script>
+
+  <script type="text/javascript">
+    var settings = {
+        key: '1606ff0ad63a3b5efeaa89443fe80704',
+        el: 'body'
+    }
+    $(function () {
+        s = new Showkr(settings);
+    });
+  </script>
+</body>
+</html>
