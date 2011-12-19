@@ -67,9 +67,13 @@ class @Set extends Model
 class PhotoView extends Backbone.View
     className: 'photo'
 
+    events:
+        'click .idlink': 'scrollTo'
+
     initialize: ({@set}) ->
         @template = _.template($('#photo-template').html())
         @el.id = @model.id
+        @model.view = this
 
         @model.bind 'change', @render, this
 
@@ -77,14 +81,21 @@ class PhotoView extends Backbone.View
         @el.innerHTML = @template(@model)
         this
 
+    scrollTo: (e) ->
+        e.preventDefault()
+        window.scroll(0, $(@el).offset().top)
+        app.navigate("#{@model.collection.set.id}/#{@model.id}", false)
+
 
 class SetView extends Backbone.View
     initialize: ->
         @set = new Set({id: @id})
-
         @views = {}
+
         @set.photos().bind 'reset', @addAll, this
         $(window).on 'load', _.bind(@scrollTo, this)
+        $.key 'j', @nextPhoto
+        $.key 'k', @prevPhoto
 
         @set.fetch()
 
@@ -106,6 +117,24 @@ class SetView extends Backbone.View
         view = @views[@targetId]
         return unless view
         window.scroll(0, $(view.el).offset().top)
+
+    nextPhoto: =>
+        for photo in @set.photos().models
+            if foundNext
+                break
+            {top} = $(photo.view.el).offset()
+            if top >= (window.scrollY - 25)
+                foundNext = true
+        app.navigate("#{@set.id}/#{photo.id}", true)
+
+    prevPhoto: =>
+        for photo in @set.photos().models
+            {top} = $(photo.view.el).offset()
+            if top >= (window.scrollY - 25)
+                break
+            previous = photo
+        if previous
+            app.navigate("#{@set.id}/#{previous.id}", true)
 
 
 class Form extends Backbone.View
