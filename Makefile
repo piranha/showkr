@@ -16,7 +16,7 @@ build/%.js: app/%.coffee $(DEPS)
 	@mkdir -p $(@D)
 	coffee -pc $< > $@
 
-build/index.html: index.html
+build/index.html: index.html $(SOURCE)
 	@mkdir -p $(@D)
 	DEPS="$(DEPS:build/%=%) $(SOURCE:build/%=%)" awk -f build.awk $< > $@
 
