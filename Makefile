@@ -25,7 +25,7 @@ build/index.html: index.html
 
 $(DEPS):
 	@mkdir -p $(@D)
-	ender build -o $@ qwery bean bonzo reqwest backbone
+	ender build -o $@ qwery bean bonzo reqwest backbone keymaster
 
 
 # Deployment
@@ -40,10 +40,11 @@ deploy: prod
 prod/app.js: $(SOURCE)
 	@mkdir -p $(@D)
 	ender compile --level simple --use $(DEPS) $(SOURCE)
-	mv build/ender-app.js $(APP)
+	mv build/ender-app.js $@
 
 prod/index.html: index.html prod/app.js
-	DEPS="app.js?$(shell md5 -q $(APP))" awk -f build.awk $< > $@
+	@mkdir -p $(@D)
+	DEPS="app.js?$(shell md5 -q prod/app.js)" awk -f build.awk $< > $@
 
 
 # Utility

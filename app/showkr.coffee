@@ -43,13 +43,16 @@ class @Showkr
         @photos = {}
         @go()
 
+        $.key 'j', @nextPhoto
+        $.key 'k', @prevPhoto
+
     api: (options, cb) ->
         options.api_key = @key
         options.format = 'json'
         $.ajax
             url: @base + '?' + $.toQueryString(options) + '&jsoncallback=?'
             type: 'jsonp'
-            success: _.bind(cb, this)
+            success: cb
 
     go: ->
         form = $('form')
@@ -61,9 +64,9 @@ class @Showkr
             @api({method: 'flickr.photosets.getPhotos', photoset_id: @set},
                  @renderPhotos)
         else
-            form.on 'submit', _.bind(@catchUrl, this)
+            form.on 'submit', @catchUrl
 
-    catchUrl: (e) ->
+    catchUrl: (e) =>
         e.preventDefault()
         {url} = $(e.target).serialize(type: 'map')
         if url.match(/^\d+$/)
@@ -75,7 +78,7 @@ class @Showkr
             return
         location.search = "?set=#{set}"
 
-    renderPhotos: ({photoset}) ->
+    renderPhotos: ({photoset}) =>
         for item in photoset.photo
             photo = new Photo(item, this,
                               {owner: photoset.owner, set: photoset.id})
@@ -85,3 +88,9 @@ class @Showkr
 
     renderComments: ->
         console.log arguments
+
+    nextPhoto: =>
+        console.log 'next'
+
+    prevPhoto: =>
+        console.log 'prev'
