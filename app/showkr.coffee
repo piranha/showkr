@@ -88,14 +88,21 @@ class PhotoView extends Backbone.View
 
 
 class SetView extends Backbone.View
+    keys:
+        'j': 'nextPhoto'
+        'k': 'prevPhoto'
+        'down': 'nextPhoto'
+        'up': 'prevPhoto'
+
     initialize: ->
         @set = new Set({id: @id})
         @views = {}
 
         @set.photos().bind 'reset', @addAll, this
         $(window).on 'load', _.bind(@scrollTo, this)
-        $.key 'j', @nextPhoto
-        $.key 'k', @prevPhoto
+
+        for key, fn of @keys
+            $.key key, _.bind(@[fn], @)
 
         @set.fetch()
 
@@ -118,7 +125,8 @@ class SetView extends Backbone.View
         return unless view
         window.scroll(0, $(view.el).offset().top)
 
-    nextPhoto: =>
+    nextPhoto: (e) ->
+        e.preventDefault()
         for photo in @set.photos().models
             if foundNext
                 break
@@ -127,7 +135,8 @@ class SetView extends Backbone.View
                 foundNext = true
         app.navigate("#{@set.id}/#{photo.id}", true)
 
-    prevPhoto: =>
+    prevPhoto: (e) ->
+        e.preventDefault()
         for photo in @set.photos().models
             {top} = $(photo.view.el).offset()
             if top >= (window.scrollY - 25)
