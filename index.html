@@ -8,14 +8,14 @@
 </head>
 <body class="container">
   <div class="row">
-    <div id="main" class="span12">
+    <div id="main" class="span16">
 
     </div>
-    <ul id="help" class="span4">
-      <li><strong>j</strong> - next photo</li>
-      <li><strong>k</strong> - previous photo</li>
-    </ul>
   </div>
+
+  <footer>
+    © 2011 <a href="http://solovyov.net/">Alexander Solovyov</a>
+  </footer>
 
   <script type="text/template" id="form-template">
     <fieldset>
@@ -32,7 +32,17 @@
 
   <script type="text/template" id="photo-template">
     <h3><%= title() %> <a class="idlink" href="#<%= setId() %>/<%= id %>">¶</a></h3>
-    <a href="<%= flickrUrl() %>"><img src="<%= url() %>"></a>
+    <div class="row">
+      <div class="span12">
+        <a href="<%= flickrUrl() %>"><img src="<%= url() %>"></a>
+      </div>
+      <ul class="span4 comments">
+      </ul>
+    </div>
+  </script>
+
+  <script type="text/template" id="comment-template">
+    <%= _content() %>
   </script>
 
   <script type="text/javascript">

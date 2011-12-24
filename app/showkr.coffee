@@ -1,6 +1,36 @@
 _ = require 'underscore'
 Backbone = require 'backbone'
-{urlParameters, Model} = require 'util'
+{urlParameters, Model, View} = require 'util'
+
+
+class Comment extends Model
+    @field '_content'
+    @field 'author'
+    @field 'authorname'
+    @field 'datecreate'
+    @field 'iconfarm'
+    @field 'iconserver'
+    @field 'permalink'
+
+
+class Comments extends Backbone.Collection
+    model: Comment
+
+    initialize: (models, {@photo}) ->
+
+    sync: (method, coll, {success, error}) ->
+        if method != 'read'
+            return alert 'wtf'
+
+        id = @photo.id
+        app.api
+            method: 'flickr.photos.comments.getList'
+            photo_id: @photo.id
+            callback: (data) ->
+                (if data.stat == 'ok' then success else error)(data)
+
+    parse: (response) ->
+        return response.comments.comment
 
 
 class Photo extends Model
@@ -9,9 +39,14 @@ class Photo extends Model
     @field 'farm'
     @field 'server'
     @field 'title'
+    @field 'comments'
 
-    # @field 'owner'
-    # @field 'set'
+    initialize: ->
+        if not @id
+            console.log 'id undefined', @cid, @
+            return
+        @comments(new Comments(null, {photo: this}))
+        @comments().fetch()
 
     # s  small square 75x75
     # t  thumbnail, 100 on longest side
@@ -37,8 +72,10 @@ class Photo extends Model
 class Photos extends Backbone.Collection
     model: Photo
 
+    initialize: (models, {@set}) ->
 
-class @Set extends Model
+
+class Set extends Model
     # @field 'id'
     @field 'owner'
     @field 'ownername'
@@ -46,39 +83,68 @@ class @Set extends Model
     @field 'photos'
 
     initialize: ->
-        @photos(new Photos())
-        @photos().set = this
+        @photos(new Photos(null, {set: this}))
 
     sync: (method, coll, {success, error}) ->
         if method != 'read'
             return alert 'wtf'
 
-        app.api {method: 'flickr.photosets.getPhotos', photoset_id: @id},
-            (data) ->
-                (if data.stat == 'ok' then success else error)(data)
+        app.api
+            method: 'flickr.photosets.getPhotos'
+            photoset_id: @id
+            callback: (data) ->
+                (if data.stat == 'ok' then success else error)(data.photoset)
 
-    parse: ({photoset}) ->
+    parse: (photoset) ->
         {photo} = photoset
         delete photoset.photo
         @photos().reset(photo)
         return photoset
 
 
-class PhotoView extends Backbone.View
+class CommentView extends View
+    tagName: 'li'
+    className: 'comment'
+    template: '#comment-template'
+
+    initialize: ->
+        @el.id = @model.id
+        @model.bind 'change', @render, this
+
+
+class CommentListView extends Backbone.View
+    initialize: ({@comments})->
+        @comments.bind 'reset', @addAll, this
+        # NOTE: not sure the view will be created before comments are fetched...
+        # if @comments.length
+        #     @addAll(@comments)
+
+    addAll: (comments) ->
+        for comment in comments.models
+            @addOne(comment)
+
+    addOne: (comment) ->
+        view = new CommentView(model: comment)
+        @el.appendChild view.render().el
+
+
+class PhotoView extends View
     className: 'photo'
+    template: '#photo-template'
 
     events:
         'click .idlink': 'scrollTo'
 
     initialize: ({@set}) ->
-        @template = _.template($('#photo-template').html())
         @el.id = @model.id
         @model.view = this
-
         @model.bind 'change', @render, this
 
     render: ->
-        @el.innerHTML = @template(@model)
+        super
+        @comments = new CommentListView
+            el: $('.comments', @el)[0]
+            comments: @model.comments()
         this
 
     scrollTo: (e) ->
@@ -194,10 +260,13 @@ class @Showkr extends Backbone.Router
         if photo
             @setview.scrollTo(photo)
 
-    api: (options, cb) ->
+    api: (options) ->
+        callback = options.callback
+        delete options.callback
+
         options.api_key = @key
         options.format = 'json'
         $.ajax
             url: @base + '?' + $.toQueryString(options) + '&jsoncallback=?'
             type: 'jsonp'
-            success: cb
+            success: callback
