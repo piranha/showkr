@@ -1,6 +1,6 @@
 _ = require 'underscore'
 Backbone = require 'backbone'
-{urlParameters, Model, View} = require 'util'
+{addOrPromote, Model, View} = require 'util'
 
 
 class Comment extends Model
@@ -85,31 +85,48 @@ class Photos extends Backbone.Collection
 
     initialize: (models, {@set}) ->
 
-
-class Set extends Model
-    # @field 'id'
-    @field 'owner'
-    @field 'ownername'
-
-    @field 'photos'
-
-    initialize: ->
-        @photos(new Photos(null, {set: this}))
-
     sync: (method, coll, {success, error}) ->
         if method != 'read'
             return alert 'wtf'
 
         app.api
             method: 'flickr.photosets.getPhotos'
+            photoset_id: @set.id
+            callback: (data) ->
+                (if data.stat == 'ok' then success else error)(data)
+
+    parse: ({photoset}) ->
+        return photoset.photo
+
+
+class Set extends Model
+    # @field 'id'
+    @field 'owner'
+    @field 'ownername'
+    @field 'title'
+    @field 'description'
+
+    @field 'photos'
+
+    initialize: ->
+        @photos(new Photos(null, {set: this}))
+
+    fetch: ->
+        super
+
+    sync: (method, coll, {success, error}) ->
+        photos = @photos()
+        app.api
+            method: 'flickr.photosets.getInfo'
             photoset_id: @id
             callback: (data) ->
-                (if data.stat == 'ok' then success else error)(data.photoset)
+                (if data.stat == 'ok' then success else error)(data)
+                photos.fetch()
 
-    parse: (photoset) ->
-        {photo} = photoset
-        delete photoset.photo
-        @photos().reset(photo)
+    parse: ({photoset}) ->
+        photoset.description = photoset.description._content
+        photoset.title = photoset.title._content
+        delete photoset.photos # number of photos!
         return photoset
 
 
@@ -177,6 +194,7 @@ class SetView extends Backbone.View
 
         @set.photos().bind 'reset', @addAll, this
         $(window).on 'load', _.bind(@scrollTo, this)
+        @set.bind 'change:title', app.addToHistory, app
 
         for key, fn of @keys
             $.key key, _.bind(@[fn], @)
@@ -264,6 +282,8 @@ class @Showkr extends Backbone.Router
 
         $.key 'shift+/', _.bind(@showHelp, @)
 
+    # ## Views
+
     index: ->
         @el.children().hide()
         form = new Form()
@@ -278,6 +298,8 @@ class @Showkr extends Backbone.Router
         if photo
             @setview.scrollTo(photo)
 
+    # ## Helpers
+
     api: (options) ->
         callback = options.callback
         delete options.callback
@@ -291,3 +313,12 @@ class @Showkr extends Backbone.Router
 
     showHelp: ->
         $('#help').overlay().open()
+
+    addToHistory: (set) ->
+        history = JSON.parse(localStorage.showkr or '[]')
+        history = addOrPromote(history, [set.id, set.title()])
+        history = history[:20]
+        localStorage.showkr = JSON.stringify(history)
+
+    getHistory: ->
+        JSON.parse(localStorage.showkr or '[]')

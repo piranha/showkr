@@ -3,13 +3,12 @@ Backbone = require 'backbone'
 exports = {}
 
 
-exports.urlParameters = ->
-    data = {}
-    for item in location.search.slice(1).split('&')
-        [k, v] = item.split('=')
-        data[k] = decodeURIComponent(v)
-    data
-
+exports.addOrPromote = (list, value) ->
+    for item, i in list
+        if item[0] == value[0]
+            list.splice(i, 1)
+    list.unshift(value)
+    return list
 
 class exports.Model extends Backbone.Model
     @field: (name) ->
