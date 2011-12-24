@@ -181,7 +181,8 @@ class PhotoView extends View
         app.navigate("#{@model.collection.set.id}/#{@model.id}", false)
 
 
-class SetView extends Backbone.View
+class SetView extends View
+    template: '#set-template'
     keys:
         'j': 'nextPhoto'
         'k': 'prevPhoto'
@@ -189,17 +190,20 @@ class SetView extends Backbone.View
         'up': 'prevPhoto'
 
     initialize: ->
-        @set = new Set({id: @id})
+        @model = new Set({id: @id})
         @views = {}
 
-        @set.photos().bind 'reset', @addAll, this
+        @model.photos().bind 'reset', @addAll, this
         $(window).on 'load', _.bind(@scrollTo, this)
-        @set.bind 'change:title', app.addToHistory, app
+        @model.bind 'change:title', app.addToHistory, app
+        # FIXME ugly hack! :(
+        @model.bind 'change:title', =>
+            $('h1', @el).html(@model.title())
 
         for key, fn of @keys
             $.key key, _.bind(@[fn], @)
 
-        @set.fetch()
+        @model.fetch()
 
     addAll: (photos) ->
         _.each @views, (k, v) -> v.remove()
@@ -223,24 +227,24 @@ class SetView extends Backbone.View
     nextPhoto: (e) ->
         console.log 'calling this again', e
         e.preventDefault()
-        for photo in @set.photos().models
+        for photo in @model.photos().models
             if foundNext
                 break
             {top} = $(photo.view.el).offset()
             if top >= (window.scrollY - 25)
                 foundNext = true
         if photo
-            app.navigate("#{@set.id}/#{photo.id}", true)
+            app.navigate("#{@model.id}/#{photo.id}", true)
 
     prevPhoto: (e) ->
         e.preventDefault()
-        for photo in @set.photos().models
+        for photo in @model.photos().models
             {top} = $(photo.view.el).offset()
             if top >= (window.scrollY - 25)
                 break
             previous = photo
         if previous
-            app.navigate("#{@set.id}/#{previous.id}", true)
+            app.navigate("#{@model.id}/#{previous.id}", true)
 
 
 class Form extends Backbone.View
@@ -317,7 +321,7 @@ class @Showkr extends Backbone.Router
     addToHistory: (set) ->
         history = JSON.parse(localStorage.showkr or '[]')
         history = addOrPromote(history, [set.id, set.title()])
-        history = history[:20]
+        history = history[..20]
         localStorage.showkr = JSON.stringify(history)
 
     getHistory: ->

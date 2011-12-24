@@ -59,6 +59,15 @@
     </fieldset>
   </script>
 
+  <script type="text/template" id="set-template">
+    <h1>
+      <%= title() %>
+      <% if (description()) { %>
+      <small><%= description() %></small>
+      <% } %>
+    </h1>
+  </script>
+  
   <script type="text/template" id="photo-template">
     <h3><%= title() %> <a class="idlink" href="#<%= setId() %>/<%= id %>">¶</a></h3>
     <div class="row">
