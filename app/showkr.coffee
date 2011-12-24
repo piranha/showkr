@@ -171,9 +171,8 @@ class SetView extends Backbone.View
         'down': 'nextPhoto'
         'up': 'prevPhoto'
 
-    initialize: ({setId}) ->
-        @set = new Set({id: setId})
-        # @el.id = "#{@set.id}"
+    initialize: ->
+        @set = new Set({id: @id})
         @views = {}
 
         @set.photos().bind 'reset', @addAll, this
@@ -266,13 +265,16 @@ class @Showkr extends Backbone.Router
         $.key 'shift+/', _.bind(@showHelp, @)
 
     index: ->
+        @el.children().hide()
         form = new Form()
-        @el.append(form.render().el)
+        @el.append form.render().el
+        $(form.el).show()
 
     set: (set, photo) ->
         if @setview?.id != set
-            @setview = new SetView({setId: set, id: set})
-            @el.append(@setview.render().el)
+            @el.children().hide()
+            @setview = new SetView({id: set})
+            @el.append @setview.render().el
         if photo
             @setview.scrollTo(photo)
 
