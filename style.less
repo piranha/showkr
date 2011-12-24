@@ -1,11 +1,24 @@
 @import 'bootstrap/bootstrap.less';
 
-h3 {
-    .idlink {
+h3, div {
+    > .idlink {
         display: none;
     }
 
-    &:hover .idlink {
+    &:hover > .idlink {
         display: inline;
+    }
+}
+
+ul.comments {
+    list-style-type: none;
+}
+
+.comment .avatar {
+    float: left;
+    margin-right: 0.5em;
+    img {
+        height: 36px;
+        width: 36px;
     }
 }

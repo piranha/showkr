@@ -12,6 +12,17 @@ class Comment extends Model
     @field 'iconserver'
     @field 'permalink'
 
+    content: -> @_content()
+    date: -> @datecreate()
+
+    authorlink: ->
+        "http://flickr.com/photos/#{@author()}/"
+
+    icon: ->
+        if @iconserver() == '0'
+            return "http://www.flickr.com/images/buddyicon.jpg"
+        "http://farm#{@iconfarm()}.static.flickr.com/#{@iconserver()}" +
+            "/buddyicons/#{@author()}.jpg"
 
 class Comments extends Backbone.Collection
     model: Comment
@@ -133,7 +144,7 @@ class PhotoView extends View
     template: '#photo-template'
 
     events:
-        'click .idlink': 'scrollTo'
+        'click h3 > .idlink': 'scrollTo'
 
     initialize: ({@set}) ->
         @el.id = @model.id
