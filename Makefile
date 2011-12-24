@@ -25,7 +25,8 @@ build/index.html: index.html $(SOURCE)
 
 $(DEPS):
 	@mkdir -p $(@D)
-	ender build -o $@ qwery bean bonzo reqwest backbone keymaster
+	ender build -o $@ jeesh reqwest backbone keymaster ender-overlay
+	sed -i '' 's:root.Zepto;$\:root.ender;:' $@
 
 
 # Deployment

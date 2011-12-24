@@ -7,6 +7,13 @@
   <!-- js.deps -->
 </head>
 <body class="container">
+  <header>
+    <div class="right">
+      <span class="label">Press '?' to view help on shortcuts.</span>
+    </div>
+    <h1>Showkr</h1>
+  </header>
+
   <div class="row">
     <div id="main" class="span16">
 
@@ -16,6 +23,18 @@
   <footer>
     © 2011 <a href="http://solovyov.net/">Alexander Solovyov</a>
   </footer>
+
+  <div id="help" class="ender-overlay zebra-striped">
+    <h3>Available keys</h3>
+
+    <dl>
+      <dt>j, down</dt>
+      <dd>Go to next photo</dd>
+
+      <dt>k, up</dt>
+      <dd>Go to previous photo</dd>
+    </dl>
+  </div>
 
   <script type="text/template" id="form-template">
     <fieldset>

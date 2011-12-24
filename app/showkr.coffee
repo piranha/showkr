@@ -171,8 +171,9 @@ class SetView extends Backbone.View
         'down': 'nextPhoto'
         'up': 'prevPhoto'
 
-    initialize: ->
-        @set = new Set({id: @id})
+    initialize: ({setId}) ->
+        @set = new Set({id: setId})
+        # @el.id = "#{@set.id}"
         @views = {}
 
         @set.photos().bind 'reset', @addAll, this
@@ -203,6 +204,7 @@ class SetView extends Backbone.View
         window.scroll(0, $(view.el).offset().top)
 
     nextPhoto: (e) ->
+        console.log 'calling this again', e
         e.preventDefault()
         for photo in @set.photos().models
             if foundNext
@@ -210,7 +212,8 @@ class SetView extends Backbone.View
             {top} = $(photo.view.el).offset()
             if top >= (window.scrollY - 25)
                 foundNext = true
-        app.navigate("#{@set.id}/#{photo.id}", true)
+        if photo
+            app.navigate("#{@set.id}/#{photo.id}", true)
 
     prevPhoto: (e) ->
         e.preventDefault()
@@ -260,13 +263,15 @@ class @Showkr extends Backbone.Router
     initialize: ({@key}) ->
         @el = $('#main')
 
+        $.key 'shift+/', _.bind(@showHelp, @)
+
     index: ->
         form = new Form()
         @el.append(form.render().el)
 
     set: (set, photo) ->
         if @setview?.id != set
-            @setview = new SetView({id: set})
+            @setview = new SetView({setId: set, id: set})
             @el.append(@setview.render().el)
         if photo
             @setview.scrollTo(photo)
@@ -281,3 +286,6 @@ class @Showkr extends Backbone.Router
             url: @base + '?' + $.toQueryString(options) + '&jsoncallback=?'
             type: 'jsonp'
             success: callback
+
+    showHelp: ->
+        $('#help').overlay().open()

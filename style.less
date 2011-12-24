@@ -10,6 +10,15 @@ h3, div {
     }
 }
 
+.right {
+    float: right;
+
+}
+
+header > .right {
+    margin-top: 0.5em;
+}
+
 ul.comments {
     list-style-type: none;
 }
@@ -17,8 +26,18 @@ ul.comments {
 .comment .avatar {
     float: left;
     margin-right: 0.5em;
+    padding: 4px;
+    border: 1px solid #ddd;
+
     img {
         height: 36px;
         width: 36px;
     }
+}
+
+.ender-overlay {
+    display: none;
+    width: 200px;
+    background: white;
+    padding: 1em;
 }
