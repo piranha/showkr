@@ -12,13 +12,13 @@ class Form extends Backbone.View
     events:
         'submit': 'submit'
 
-    initialize: ->
+    initialize: ({@app}) ->
         @template = _.template($('#form-template').html())
-        app.bind 'history:change', @render, this
+        @app.bind 'history:change', @render, this
 
     render: ->
         @el.innerHTML = @template
-            history: app.getHistory()
+            history: @app.getHistory()
         this
 
     submit: (e) ->
@@ -40,10 +40,10 @@ class Form extends Backbone.View
         else
             return alert 'something is wrong in your input'
 
-        app.navigate(set, true)
+        @app.navigate(set, true)
 
     processUser: (user) ->
-        app.navigate("user/#{user}", true)
+        @app.navigate("user/#{user}", true)
 
 
 class @Showkr extends Backbone.Router
@@ -82,7 +82,7 @@ class @Showkr extends Backbone.Router
     # ## Views
 
     index: ->
-        [form, isNew] = @getView('form', -> new Form())
+        [form, isNew] = @getView('form', => new Form(app: this))
 
     set: (set, photo) ->
         [view, isNew] = @getView("set-#{set}", -> new SetView(id: set))

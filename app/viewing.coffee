@@ -54,7 +54,7 @@ class PhotoView extends View
     scrollTo: (e) ->
         e.preventDefault()
         window.scroll(0, $(@el).offset().top)
-        app.navigate("#{@model.collection.set.id}/#{@model.id}", false)
+        showkr.navigate("#{@model.collection.set.id}/#{@model.id}", false)
 
 
 class SetView extends View
@@ -71,7 +71,7 @@ class SetView extends View
 
         @model.photolist().bind 'reset', @addAll, this
         $(window).on 'load', _.bind(@scrollTo, this)
-        @model.bind 'change:title', app.addToHistory, app
+        @model.bind 'change:title', showkr.addToHistory, app
         # FIXME ugly hack! :(
         # I should re-render here or use some data-to-html binding stuff instead
         # of this crap
@@ -113,7 +113,7 @@ class SetView extends View
             if top >= (window.scrollY - 25)
                 foundNext = true
         if photo
-            app.navigate("#{@model.id}/#{photo.id}", true)
+            showkr.navigate("#{@model.id}/#{photo.id}", true)
 
     prevPhoto: (e) ->
         e.preventDefault()
@@ -123,9 +123,9 @@ class SetView extends View
                 break
             previous = photo
         if previous
-            app.navigate("#{@model.id}/#{previous.id}", true)
+            showkr.navigate("#{@model.id}/#{previous.id}", true)
         else
-            app.navigate("#{@model.id}", false)
+            showkr.navigate("#{@model.id}", false)
             window.scroll(0, 0)
 
 
