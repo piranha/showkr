@@ -45,7 +45,7 @@ class PhotoView extends View
     render: ->
         super
         @comments = new CommentListView
-            el: $('.comments', @el)[0]
+            el: @$('.comments')[0]
             comments: @model.comments()
         this
 
@@ -74,7 +74,7 @@ class SetView extends View
         # I should re-render here or use some data-to-html binding stuff instead
         # of this crap
         @model.bind 'change:title', =>
-            $('h1', @el).html(@model.title())
+            @$('h1').html(@model.title())
 
         for key, fn of @keys
             $.key key, _.bind(@[fn], @)
@@ -159,24 +159,37 @@ class @Showkr extends Backbone.Router
         ':set/:photo': 'set'
 
     initialize: ->
+        @views = {}
         @el = $('#main')
         $.key 'shift+/', _.bind(@showHelp, @)
+
+    getView: (id, creator) ->
+        if @views[id]
+            return [@views[id], false]
+        @views[id] = view = creator()
+        $(view.render().el).hide()
+        @el.append view.el
+        return [view, true]
 
     # ## Views
 
     index: ->
         @el.children().hide()
-        form = new Form()
-        @el.append form.render().el
+        [form, isNew] = @getView('form', -> new Form())
         $(form.el).show()
 
+        @current = form
+
     set: (set, photo) ->
-        if @setview?.id != set
+        [setView, isNew] = @getView("set-#{set}", -> new SetView(id: set))
+        if @current?.id != setView.id
             @el.children().hide()
-            @setview = new SetView({id: set})
-            @el.append @setview.render().el
+            $(setView.el).show()
+
         if photo
-            @setview.scrollTo(photo)
+            setView.scrollTo(photo)
+
+        @current = setView
 
     # ## Helpers
 
