@@ -2,6 +2,9 @@ _ = require 'underscore'
 Backbone = require 'backbone'
 exports = {}
 
+MONTHS = ('January February March April May June July August September ' +
+          'October November December').split(' ')
+
 
 exports.addOrPromote = (list, value) ->
     for item, i in list
@@ -11,12 +14,21 @@ exports.addOrPromote = (list, value) ->
     list.unshift(value)
     return list
 
+
+exports.formatDate = (d) ->
+    "#{d.getDate()} #{MONTHS[d.getMonth()]} #{d.getFullYear()}"
+
+
 class exports.Model extends Backbone.Model
     @field: (name) ->
         @::[name] = (value) ->
             if not arguments.length
                 value = @get(name)
-                return value?._content or value
+                if not value
+                    return value
+                if typeof value._content != 'undefined'
+                    return value._content
+                return value
             else
                 data = {}
                 data[name] = value
@@ -32,5 +44,6 @@ class exports.View extends Backbone.View
     render: ->
         @el.innerHTML = @template(@model)
         this
+
 
 provide 'util', exports

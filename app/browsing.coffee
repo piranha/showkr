@@ -1,11 +1,23 @@
 _ = require 'underscore'
 Backbone = require 'backbone'
 {View, Model} = require 'util'
-{User} = require 'models'
+{User, Photo} = require 'models'
 
 
 class BrowsingSetView extends View
     template: '#browsing-set-template'
+    className: 'row'
+
+    initialize: ->
+        @photo = new Photo
+            id: @model.primary()
+            secret: @model.secret()
+            farm: @model.farm()
+            server: @model.server()
+
+    render: ->
+        @el.innerHTML = @template(model: @model, photo: @photo)
+        this
 
 
 class UserView extends View

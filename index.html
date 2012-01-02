@@ -21,7 +21,7 @@
   </div>
 
   <footer>
-    © 2011 <a href="http://solovyov.net/">Alexander Solovyov</a>
+    <p>© 2011 <a href="http://solovyov.net/">Alexander Solovyov</a></p>
   </footer>
 
   <div id="help" class="ender-overlay zebra-striped">
@@ -77,12 +77,8 @@
   </script>
 
   <script type="text/template" id="set-template">
-    <h1>
-      <%= title() %>
-      <% if (description()) { %>
-      <small><%= description() %></small>
-      <% } %>
-    </h1>
+    <h1><%= title() %></h1>
+    <small><%= description() %></small>
   </script>
 
   <script type="text/template" id="photo-template">
@@ -108,7 +104,17 @@
   </script>
 
   <script type="text/template" id="browsing-set-template">
-    <a href="#<%= get('id') %>"><%= title() %></a>
+    <div class="span8">
+      <h3><a href="#<%= model.id %>"><%= model.title() %></a></h3>
+      <small><%= model.description() %></small>
+      <p>Created at <%= model.date() %></p>
+      <p>In total <%= model.photos() %> photos</p>
+    </div>
+    <div class="span8">
+      <a href="#<%= model.id %>">
+        <img src="<%= photo.url('m') %>">
+      </a>
+    </div>
   </script>
 
   <script type="text/template" id="user-template">

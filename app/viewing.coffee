@@ -76,6 +76,8 @@ class SetView extends View
         # of this crap
         @model.bind 'change:title', =>
             @$('h1').html(@model.title())
+        @model.bind 'change:description', =>
+            @$('small').html(@model.description())
 
         for key, fn of @keys
             $.key key, _.bind(@[fn], @)

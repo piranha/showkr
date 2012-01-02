@@ -1,7 +1,7 @@
 _ = require 'underscore'
 Backbone = require 'backbone'
+{Model, formatDate} = require 'util'
 API = require 'api'
-{Model} = require 'util'
 
 
 class Comment extends Model
@@ -101,7 +101,16 @@ class Set extends Model
     @field 'title'
     @field 'description'
 
-    # relations
+    @field 'date_create'
+    @field 'photos'
+
+    # primary photo
+    @field 'primary'
+    @field 'secret'
+    @field 'farm'
+    @field 'server'
+
+    # `photos` is taken by amount of photos
     @field 'photolist'
 
     @getOrCreate: (id) ->
@@ -121,6 +130,10 @@ class Set extends Model
 
     parse: ({photoset}) ->
         return photoset
+
+    date: ->
+        d = new Date(parseInt(@date_create()) * 1000)
+        formatDate(d)
 
 
 class SetList extends Backbone.Collection
@@ -159,4 +172,4 @@ class User extends Model
                 sets.fetch()
 
 
-provide 'models', {Set, User}
+provide 'models', {Set, User, Photo}
