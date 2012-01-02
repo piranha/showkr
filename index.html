@@ -107,8 +107,12 @@
     <div class="span8">
       <h3><a href="#<%= model.id %>"><%= model.title() %></a></h3>
       <small><%= model.description() %></small>
-      <p>Created at <%= model.date() %></p>
-      <p>In total <%= model.photos() %> photos</p>
+      <dl>
+        <dt>Created at</dt>
+        <dd><%= model.date() %></dd>
+        <dt>In total</dt>
+        <dd><%= model.photos() %> photos</dd>
+      </dl>
     </div>
     <div class="span8">
       <a href="#<%= model.id %>">
