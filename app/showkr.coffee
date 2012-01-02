@@ -57,6 +57,7 @@ class @Showkr extends Backbone.Router
         @views = {}
         @el = $(el)
         $.key 'shift+/', _.bind(@showHelp, @)
+        setTimeout (-> Backbone.history.start()), 1
 
     # returns a view (creates if necessary) and switches to it
     getView: (id, creator) ->
