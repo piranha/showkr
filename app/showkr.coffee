@@ -14,6 +14,7 @@ class Form extends Backbone.View
 
     initialize: ->
         @template = _.template($('#form-template').html())
+        app.bind 'history:change', @render, this
 
     render: ->
         @el.innerHTML = @template
@@ -99,7 +100,10 @@ class @Showkr extends Backbone.Router
         history = JSON.parse(localStorage.showkr or '[]')
         history = addOrPromote(history, [set.id, set.title()])
         history = history[..20]
+        changed = localStorage.showkr != JSON.stringify(history)
         localStorage.showkr = JSON.stringify(history)
+        if changed
+            @trigger('history:change', this)
 
     getHistory: ->
         JSON.parse(localStorage.showkr or '[]')
