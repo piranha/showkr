@@ -23,15 +23,19 @@ ul.comments {
     list-style-type: none;
 }
 
-.comment .avatar {
-    float: left;
-    margin-right: 0.5em;
-    padding: 4px;
-    border: 1px solid #ddd;
+.comment {
+    .clearfix();
 
-    img {
-        height: 36px;
-        width: 36px;
+    .avatar {
+        float: left;
+        margin-right: 0.5em;
+        padding: 4px;
+        border: 1px solid #ddd;
+
+        img {
+            height: 36px;
+            width: 36px;
+        }
     }
 }
 
