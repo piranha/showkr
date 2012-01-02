@@ -60,6 +60,11 @@ addMethods API,
     setInfo:
         args: ['photoset_id']
         method: 'flickr.photosets.getInfo'
-
+    setList:
+        args: ['user_id']
+        method: 'flickr.photosets.getList'
+    userByUrl:
+        args: ['url']
+        method: 'flickr.urls.lookupUser'
 
 provide 'api', API

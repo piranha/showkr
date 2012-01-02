@@ -5,7 +5,8 @@ exports = {}
 
 exports.addOrPromote = (list, value) ->
     for item, i in list
-        if item[0] == value[0]
+        # something strange happens here sometimes with `undefined`
+        if item == undefined or item[0] == value[0]
             list.splice(i, 1)
     list.unshift(value)
     return list
@@ -14,7 +15,8 @@ class exports.Model extends Backbone.Model
     @field: (name) ->
         @::[name] = (value) ->
             if not arguments.length
-                @get(name)
+                value = @get(name)
+                return value?._content or value
             else
                 data = {}
                 data[name] = value

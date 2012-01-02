@@ -1,6 +1,7 @@
 .PHONY: deploy watch
 
-SOURCE=$(patsubst app/%.coffee,build/%.js,$(wildcard app/*.coffee))
+_SOURCE=util api models viewing browsing showkr
+SOURCE=$(_SOURCE:%=build/%.js)
 CSS=build/style.css
 DEPS=build/ender.js
 VENDOR=$(wildcard vendor/*.js)

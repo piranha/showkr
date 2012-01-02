@@ -1,8 +1,7 @@
 _ = require 'underscore'
 Backbone = require 'backbone'
 API = require 'api'
-{addOrPromote, Model} = require 'util'
-exports = {}
+{Model} = require 'util'
 
 
 class Comment extends Model
@@ -57,7 +56,6 @@ class Photo extends Model
             console.log 'id undefined', @cid, @
             return
         @comments(new Comments(null, {photo: this}))
-        @comments().fetch()
 
     # s  small square 75x75
     # t  thumbnail, 100 on longest side
@@ -80,7 +78,7 @@ class Photo extends Model
         @collection.set.id
 
 
-class Photos extends Backbone.Collection
+class PhotoList extends Backbone.Collection
     model: Photo
 
     initialize: (models, {@set}) ->
@@ -96,32 +94,69 @@ class Photos extends Backbone.Collection
         return photoset.photo
 
 
-class exports.Set extends Model
+class Set extends Model
     # @field 'id'
     @field 'owner'
     @field 'ownername'
     @field 'title'
     @field 'description'
 
-    @field 'photos'
+    # relations
+    @field 'photolist'
+
+    @getOrCreate: (id) ->
+        set = @_cache?[id]
+        return set if set
+        @_cache or= {}
+        @_cache[id] = new Set({id: id})
 
     initialize: ->
-        @photos(new Photos(null, {set: this}))
-
-    fetch: ->
-        super
+        @photolist(new PhotoList(null, {set: this}))
 
     sync: (method, coll, {success, error}) ->
-        photos = @photos()
+        photos = @photolist()
         API.setInfo @id, (data) ->
             (if data.stat == 'ok' then success else error)(data)
             photos.fetch()
 
     parse: ({photoset}) ->
-        photoset.description = photoset.description._content
-        photoset.title = photoset.title._content
-        delete photoset.photos # number of photos!
         return photoset
 
 
-provide 'models', exports
+class SetList extends Backbone.Collection
+    model: Set
+
+    initialize: (models, {@user}) ->
+
+    sync: (method, coll, {success, error}) ->
+        if method != 'read'
+            return alert 'wtf'
+        API.setList @user.id, (data) ->
+            (if data.stat == 'ok' then success else error)(data)
+
+    parse: ({photosets}) ->
+        return photosets.photoset
+
+
+class User extends Model
+    # that's not really a username, but who cares
+    @field 'username'
+    @field 'sets'
+
+    initialize: ->
+        @sets(new SetList(null, {user: this}))
+
+    sync: (method, model, {success, error}) ->
+        sets = @sets()
+        if @id
+            sets.fetch()
+        else
+            url = 'http://flickr.com/photos/' + @username()
+            API.userByUrl url, (data) =>
+                if data.stat != 'ok'
+                    return error(data)
+                @set(id: data.user.id)
+                sets.fetch()
+
+
+provide 'models', {Set, User}
