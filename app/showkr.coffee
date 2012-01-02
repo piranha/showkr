@@ -136,7 +136,8 @@ class Form extends Backbone.View
         @template = _.template($('#form-template').html())
 
     render: ->
-        @el.innerHTML = @template()
+        @el.innerHTML = @template
+            history: app.getHistory()
         this
 
     submit: (e) ->

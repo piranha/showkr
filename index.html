@@ -43,11 +43,11 @@
           <input type="text" name="url" placeholder="Enter url or id of a photoset">
         </div>
       </div>
-      <% if (app.getHistory()) { %>
+      <% if (history) { %>
       <div class="input">
         Or select something from your history:
         <ul>
-          <% _.each(app.getHistory(), function(item) { %>
+          <% _.each(history, function(item) { %>
           <li><a href="#<%= item[0] %>"><%= item[1] %></a></li>
           <% }); %>
         </ul>
@@ -67,7 +67,7 @@
       <% } %>
     </h1>
   </script>
-  
+
   <script type="text/template" id="photo-template">
     <h3><%= title() %> <a class="idlink" href="#<%= setId() %>/<%= id %>">¶</a></h3>
     <div class="row">
