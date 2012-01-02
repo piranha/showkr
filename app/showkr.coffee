@@ -23,7 +23,7 @@ class Form extends Backbone.View
     submit: (e) ->
         e.preventDefault()
         {url, user} = $(e.target).serialize(type: 'map')
-        @$('input').attr('value', '')
+        @$('input[type=text]').val('')
         if url
             @processUrl(url)
         else if user
@@ -42,13 +42,13 @@ class Form extends Backbone.View
         app.navigate(set, true)
 
     processUser: (user) ->
-        app.navigate("user-#{user}", true)
+        app.navigate("user/#{user}", true)
 
 
 class @Showkr extends Backbone.Router
     routes:
         '': 'index'
-        'user-:user': 'user'
+        'user/:user': 'user'
         ':set': 'set'
         ':set/:photo': 'set'
 
