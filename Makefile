@@ -3,10 +3,11 @@
 SOURCE=$(patsubst app/%.coffee,build/%.js,$(wildcard app/*.coffee))
 CSS=build/style.css
 DEPS=build/ender.js
+VENDOR=$(wildcard vendor/*.js)
 
 SERVER=sapientisat.org:web/showkr/
 
-all: $(SOURCE) $(CSS) build/index.html
+all: $(SOURCE) $(CSS) $(VENDOR:%=build/%) build/index.html
 
 build/%.css: %.less
 	@mkdir -p $(@D)
@@ -16,9 +17,13 @@ build/%.js: app/%.coffee $(DEPS)
 	@mkdir -p $(@D)
 	coffee -pc $< > $@
 
-build/index.html: index.html $(SOURCE)
+build/vendor/%.js: vendor/%.js
 	@mkdir -p $(@D)
-	DEPS="$(DEPS:build/%=%) $(SOURCE:build/%=%)" awk -f build.awk $< > $@
+	cp $< $@
+
+build/index.html: index.html $(SOURCE) $(VENDOR) $(DEPS)
+	@mkdir -p $(@D)
+	DEPS="$(DEPS:build/%=%) $(VENDOR) $(SOURCE:build/%=%)" awk -f build.awk $< > $@
 
 %/static: static
 	rsync -r $</ $@/ 
@@ -40,7 +45,7 @@ deploy: prod
 
 prod/app.js: $(SOURCE)
 	@mkdir -p $(@D)
-	ender compile --level simple --use $(DEPS) $(SOURCE)
+	ender compile --level simple --use $(DEPS) $(VENDOR) $(SOURCE)
 	mv build/ender-app.js $@
 
 prod/index.html: index.html prod/app.js
@@ -49,6 +54,9 @@ prod/index.html: index.html prod/app.js
 
 
 # Utility
+
+clean:
+	rm -rf build prod
 
 watch: all
 	fswatch . make
