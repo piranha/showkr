@@ -9,7 +9,7 @@ class CommentView extends View
     className: 'comment'
     template: '#comment-template'
 
-    initialize: ->
+    initialize: ({number}) ->
         @el.id = @model.id
         @model.bind 'change', @render, this
 
@@ -25,7 +25,7 @@ class CommentListView extends Backbone.View
         for comment in comments.models
             @addOne(comment)
 
-    addOne: (comment) ->
+    addOne: (comment, i) ->
         view = new CommentView(model: comment)
         @el.appendChild view.render().el
 
@@ -37,7 +37,8 @@ class PhotoView extends View
     events:
         'click h3 > .idlink': 'scrollTo'
 
-    initialize: ({@set}) ->
+    initialize: ({@set, number}) ->
+        @model.number(number + 1)
         @el.id = @model.id
         @model.view = this
 
@@ -87,12 +88,12 @@ class SetView extends View
     addAll: (photos) ->
         _.each @views, (v) -> v.remove()
         @views = {}
-        for photo in photos.models
-            @addOne(photo)
+        for photo, i in photos.models
+            @addOne(photo, i)
         @scrollTo(@targetId) if @targetId
 
-    addOne: (photo) ->
-        view = new PhotoView(model: photo)
+    addOne: (photo, number) ->
+        view = new PhotoView(model: photo, number: number)
         @views[photo.id] = view
         @el.appendChild view.render().el
 

@@ -50,6 +50,7 @@ class Photo extends Model
     @field 'server'
     @field 'title'
     @field 'comments'
+    @field 'number'
 
     initialize: ->
         if not @id
