@@ -81,7 +81,7 @@ class SetView extends View
 
         @model.photolist().bind 'reset', @addAll, this
         $(window).on 'load', _.bind(@scrollTo, this)
-        @model.bind 'change:title', showkr.addToHistory, app
+        @model.bind 'change:title', showkr.addToHistory, showkr
         # FIXME ugly hack! :(
         # I should re-render here or use some data-to-html binding stuff instead
         # of this crap

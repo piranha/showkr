@@ -53,11 +53,14 @@ class @Showkr extends Backbone.Router
         ':set': 'set'
         ':set/:photo': 'set'
 
-    initialize: (el='#main') ->
+    initialize: (el='#main', set) ->
         @views = {}
         @el = $(el)[0]
         $.key 'h', _.bind(@showHelp, @)
-        setTimeout (-> Backbone.history.start()), 1
+        if set
+            setTimeout (=> @set(set)), 1
+        else
+            setTimeout (-> Backbone.history.start()), 1
 
     # returns a view (creates if necessary) and switches to it
     getView: (id, creator) ->
