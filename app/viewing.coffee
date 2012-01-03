@@ -29,12 +29,14 @@ class CommentListView extends Backbone.View
         this
 
     addAll: (comments) ->
+        frag = document.createDocumentFragment()
         for comment in comments.models
-            @addOne(comment)
+            @addOne(comment, frag)
+        @el.appendChild(frag)
 
-    addOne: (comment, i) ->
+    addOne: (comment, frag) ->
         view = new CommentView(model: comment)
-        @el.appendChild view.render().el
+        (frag or @el).appendChild view.render().el
 
 
 class PhotoView extends View
@@ -104,15 +106,17 @@ class SetView extends View
     addAll: (photos) ->
         _.each @views, (v) -> v.remove()
         @views = {}
+        frag = document.createDocumentFragment()
         for photo, i in photos.models
-            @addOne(photo, i)
+            @addOne(photo, i, frag)
         @scrollTo(@targetId) if @targetId
-        @el.appendChild @comments.el
+        frag.appendChild @comments.el
+        @el.appendChild(frag)
 
-    addOne: (photo, number) ->
+    addOne: (photo, number, frag) ->
         view = new PhotoView(model: photo, number: number)
         @views[photo.id] = view
-        @el.appendChild view.render().el
+        (frag or @el).appendChild view.render().el
 
     scrollTo: (id) ->
         if typeof id == 'string'

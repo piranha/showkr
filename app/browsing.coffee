@@ -36,12 +36,14 @@ class UserView extends View
 
     addAll: (sets) ->
         @render()
+        frag = document.createDocumentFragment()
         for set in sets.models
-            @addOne(set)
+            @addOne(set, frag)
+        @el.appendChild(frag)
 
-    addOne: (set) ->
+    addOne: (set, frag) ->
         view = new BrowsingSetView(model: set)
-        @el.appendChild view.render().el
+        (frag or @el).appendChild view.render().el
 
 
 provide 'browsing', {UserView}
