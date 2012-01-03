@@ -23,6 +23,18 @@ $.ender({
             return this.length and this[0].value
         for el in this
             el.value = v
+    offset: ->
+        el = this[0]
+        width = el.offsetWidth
+        height = el.offsetHeight
+        top = el.offsetTop
+        left = el.offsetLeft
+
+        while el = el.offsetParent
+            top += el.offsetTop
+            left += el.offsetLeft
+
+        return {top, left, height, width}
 
 }, true)
 
