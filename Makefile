@@ -19,7 +19,7 @@ build/%.js: app/%.coffee $(DEPS)
 	@mkdir -p $(@D)
 	coffee -pc $< > $@
 
-build/templates/%.js: app/templates/%
+build/templates/%.js: app/templates/% node_modules/eco
 	@mkdir -p $(@D)
 	./eco.js $< $(<:app/%=%) > $@
 
@@ -34,11 +34,13 @@ build/index.html: index.html $(SOURCE) $(VENDOR) $(DEPS)
 %/static: static
 	rsync -r $</ $@/ 
 
+node_modules/eco:
+	npm install eco
+
 $(DEPS):
 	@mkdir -p $(@D)
 	ender build -o $@ jeesh reqwest backbone keymaster ender-overlay
 	sed -i '' 's:root.Zepto;$\:root.ender;:' $@
-	npm install eco
 
 
 # Deployment
