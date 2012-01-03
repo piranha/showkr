@@ -55,8 +55,8 @@ class @Showkr extends Backbone.Router
 
     initialize: (el='#main') ->
         @views = {}
-        @el = $(el)
-        $.key 'shift+/', _.bind(@showHelp, @)
+        @el = $(el)[0]
+        $.key 'h', _.bind(@showHelp, @)
         setTimeout (-> Backbone.history.start()), 1
 
     # returns a view (creates if necessary) and switches to it
@@ -69,13 +69,13 @@ class @Showkr extends Backbone.Router
             isNew = false
 
         if @current and @current != view
-            $(@current.el).hide()
+            @current.el.style.display = 'none'
         @current = view
 
         if isNew
-            @el.append view.render().el
+            @el.appendChild view.render().el
         else
-            $(view.el).show()
+            view.el.style.display = 'block'
 
         return [view, isNew]
 

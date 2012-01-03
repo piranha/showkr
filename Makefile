@@ -36,7 +36,7 @@ build/index.html: index.html $(SOURCE) $(VENDOR) $(DEPS)
 
 $(DEPS):
 	@mkdir -p $(@D)
-	ender build -o $@ jeesh reqwest backbone keymaster ender-overlay
+	ender build -o $@ qwery bean reqwest backbone keymaster
 	sed -i '' 's:root.Zepto;$\:root.ender;:' $@
 	npm install eco
 
