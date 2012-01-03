@@ -8,12 +8,12 @@ Backbone = require 'backbone'
 
 class Form extends Backbone.View
     tagName: 'form'
+    template: require 'templates/form.eco'
 
     events:
         'submit': 'submit'
 
     initialize: ({@app}) ->
-        @template = _.template($('#form-template').html())
         @app.bind 'history:change', @render, this
 
     render: ->

@@ -36,11 +36,6 @@ class exports.Model extends Backbone.Model
 
 
 class exports.View extends Backbone.View
-    constructor: ->
-        if @template
-            @template = _.template($(@template).html())
-        super
-
     render: ->
         @el.innerHTML = @template(@model)
         this

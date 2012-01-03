@@ -5,7 +5,7 @@ Backbone = require 'backbone'
 
 
 class BrowsingSetView extends View
-    template: '#browsing-set-template'
+    template: require 'templates/browsing-set.eco'
     className: 'row'
 
     initialize: ->
@@ -21,7 +21,7 @@ class BrowsingSetView extends View
 
 
 class UserView extends View
-    template: '#user-template'
+    template: require 'templates/user.eco'
 
     initialize: ({user}) ->
         if ~user.indexOf('@')

@@ -1,0 +1,37 @@
+<div class="row">
+  <fieldset class="span8">
+    <legend>Go directly to photoset</legend>
+    <div class="clearfix">
+      <label for="url-input">Photoset URL or id</label>
+      <div class="input">
+        <input type="text" id="url-input" name="url"
+               placeholder="URL or id of a photoset">
+      </div>
+    </div>
+    <% if @history: %>
+    <div class="input">
+      Or select something from your history:
+      <ul>
+        <% for item in @history: %>
+        <li><a href="#<%- item[0] %>"><%- item[1] %></a></li>
+        <% end %>
+      </ul>
+    </div>
+    <% end %>
+  </fieldset>
+
+  <fieldset class="span8">
+    <legend>Browse a user sets</legend>
+    <div class="clearfix">
+      <label for="user-input">User id or profile username</label>
+      <div class="input">
+        <input type="text" id="user-input" name="user"
+               placeholder="User id or profile username">
+      </div>
+    </div>
+  </fieldset>
+</div>
+
+<div class="actions">
+  <input type="submit" class="btn primary">
+</div>

@@ -1,0 +1,8 @@
+<div class="avatar">
+  <img src="<%- @icon() %>">
+</div>
+<div>
+  <a href="<%- @authorlink() %>"><%- @authorname() %></a>
+  <a href="<%- @permalink() %>" class="idlink">¶</a>
+</div>
+<%- @content() %>

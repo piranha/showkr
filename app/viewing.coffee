@@ -7,7 +7,7 @@ Backbone = require 'backbone'
 class CommentView extends View
     tagName: 'li'
     className: 'comment'
-    template: '#comment-template'
+    template: require 'templates/comment.eco'
 
     initialize: ({number}) ->
         @el.id = @model.id
@@ -39,7 +39,7 @@ class CommentListView extends Backbone.View
 
 class PhotoView extends View
     className: 'photo'
-    template: '#photo-template'
+    template: require 'templates/photo.eco'
 
     events:
         'click h3 > .idlink': 'scrollTo'
@@ -65,7 +65,8 @@ class PhotoView extends View
 
 
 class SetView extends View
-    template: '#set-template'
+    template: require 'templates/set.eco'
+
     keys:
         'j': 'nextPhoto'
         'k': 'prevPhoto'

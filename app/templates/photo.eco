@@ -1,0 +1,10 @@
+<h3><%- @number() %>. <%- @title() %>
+  <a class="idlink" href="#<%- @setId() %>/<%- @id %>">¶</a>
+</h3>
+<div class="row">
+  <div class="span11">
+    <a href="<%- @flickrUrl() %>"><img src="<%- @url() %>"></a>
+  </div>
+  <ul class="span5 comments">
+  </ul>
+</div>
