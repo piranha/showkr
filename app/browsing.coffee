@@ -43,7 +43,7 @@ class UserView extends View
 
     addOne: (set, frag) ->
         view = new BrowsingSetView(model: set)
-        (frag or @el).appendChild view.render().el
+        frag.appendChild view.render().el
 
 
 provide 'browsing', {UserView}

@@ -36,7 +36,7 @@ class CommentListView extends Backbone.View
 
     addOne: (comment, frag) ->
         view = new CommentView(model: comment)
-        (frag or @el).appendChild view.render().el
+        frag.appendChild view.render().el
 
 
 class PhotoView extends View
@@ -116,7 +116,7 @@ class SetView extends View
     addOne: (photo, number, frag) ->
         view = new PhotoView(model: photo, number: number)
         @views[photo.id] = view
-        (frag or @el).appendChild view.render().el
+        frag.appendChild view.render().el
 
     scrollTo: (id) ->
         if typeof id == 'string'

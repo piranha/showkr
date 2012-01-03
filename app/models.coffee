@@ -50,6 +50,8 @@ class Photo extends Model
     @field 'server'
     @field 'title'
     @field 'number'
+    @field 'originalsecret'
+    @field 'originalformat'
 
     @field 'comments'
 
@@ -65,10 +67,23 @@ class Photo extends Model
     # -  medium, 500 on longest side
     # z  medium 640, 640 on longest side
     # b  large, 1024 on longest side*
-    # o  original image, either a jpg, gif or png, depending on source format
     url: (size='z') ->
         "http://farm#{@farm()}.staticflickr.com/#{@server()}/" +
             "#{@id}_#{@secret()}_#{size}.jpg"
+
+    small: ->
+        @url('m')
+
+    medium: ->
+        @url('z')
+
+    big: ->
+        @url('b')
+
+    # o  original image, either a jpg, gif or png, depending on source format
+    original: ->
+        "http://farm#{@farm()}.staticflickr.com/#{@server()}/" +
+            "#{@id}_#{@originalsecret()}_o.#{@originalformat()}"
 
     flickrUrl: ->
         "http://www.flickr.com/photos/#{@owner()}/#{@id}/in/set-#{@setId()}/"
@@ -89,7 +104,7 @@ class PhotoList extends Backbone.Collection
         if method != 'read'
             return alert 'wtf'
 
-        API.photoList @set.id, (data) ->
+        API.photoList @set.id, 'original_format', (data) ->
             (if data.stat == 'ok' then success else error)(data)
 
     parse: ({photoset}) ->

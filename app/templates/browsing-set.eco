@@ -10,6 +10,6 @@
 </div>
 <div class="span8">
   <a href="#<%- @model.id %>">
-    <img src="<%- @photo.url('m') %>">
+    <img src="<%- @photo.small() %>">
   </a>
 </div>
