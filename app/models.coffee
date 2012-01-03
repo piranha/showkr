@@ -29,14 +29,14 @@ class Comment extends Model
 class Comments extends Backbone.Collection
     model: Comment
 
-    initialize: (models, {@photo}) ->
+    # method: either 'photoComments' or 'setComments'
+    initialize: (models, {@parent, @method}) ->
 
     sync: (method, coll, {success, error}) ->
         if method != 'read'
             return alert 'wtf'
 
-        id = @photo.id
-        API.commentList @photo.id, (data) ->
+        API[@method] @parent.id, (data) ->
             (if data.stat == 'ok' then success else error)(data)
 
     parse: (response) ->
@@ -49,14 +49,15 @@ class Photo extends Model
     @field 'farm'
     @field 'server'
     @field 'title'
-    @field 'comments'
     @field 'number'
+
+    @field 'comments'
 
     initialize: ->
         if not @id
             console.log 'id undefined', @cid, @
             return
-        @comments(new Comments(null, {photo: this}))
+        @comments(new Comments(null, {parent: this, method: 'photoComments'}))
 
     # s  small square 75x75
     # t  thumbnail, 100 on longest side
@@ -113,6 +114,7 @@ class Set extends Model
 
     # `photos` is taken by amount of photos
     @field 'photolist'
+    @field 'comments'
 
     @getOrCreate: (id) ->
         set = @_cache?[id]
@@ -122,6 +124,7 @@ class Set extends Model
 
     initialize: ->
         @photolist(new PhotoList(null, {set: this}))
+        @comments(new Comments(null, {parent: this, method: 'setComments'}))
 
     sync: (method, coll, {success, error}) ->
         photos = @photolist()

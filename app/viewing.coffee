@@ -15,11 +15,18 @@ class CommentView extends View
 
 
 class CommentListView extends Backbone.View
+    tagName: 'ul'
+    className: 'comments'
+
     initialize: ({@comments})->
         @comments.bind 'reset', @addAll, this
         # NOTE: not sure the view will be created before comments are fetched...
         # if @comments.length
         #     @addAll(@comments)
+
+    render: ->
+        @el.innerHTML = '<h2>Comments</h2>'
+        this
 
     addAll: (comments) ->
         for comment in comments.models
@@ -85,12 +92,21 @@ class SetView extends View
 
         @model.fetch()
 
+    render: ->
+        super
+        if not @model.comments().length
+            @model.comments().fetch()
+        @comments = new CommentListView(comments: @model.comments())
+        @comments.render()
+        this
+
     addAll: (photos) ->
         _.each @views, (v) -> v.remove()
         @views = {}
         for photo, i in photos.models
             @addOne(photo, i)
         @scrollTo(@targetId) if @targetId
+        @el.appendChild @comments.el
 
     addOne: (photo, number) ->
         view = new PhotoView(model: photo, number: number)

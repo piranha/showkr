@@ -51,18 +51,21 @@ addMethods = (apiClient, methods) ->
             apiClient(options, callback)
 
 addMethods API,
-    commentList:
-        args: ['photo_id']
-        method: 'flickr.photos.comments.getList'
     photoList:
         args: ['photoset_id']
         method: 'flickr.photosets.getPhotos'
+    photoComments:
+        args: ['photo_id']
+        method: 'flickr.photos.comments.getList'
     setInfo:
         args: ['photoset_id']
         method: 'flickr.photosets.getInfo'
     setList:
         args: ['user_id']
         method: 'flickr.photosets.getList'
+    setComments:
+        args: ['photoset_id']
+        method: 'flickr.photosets.comments.getList'
     userByUrl:
         args: ['url']
         method: 'flickr.urls.lookupUser'
