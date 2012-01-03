@@ -12,12 +12,18 @@ $.ender({
                 @attr(n, k[n])
             return
         for el in this
-            el[k] = v
+            el.setAttribute(k, v)
     html: (v) ->
         if not v
-            return this[0].innerHTML
+            return this.length and this[0].innerHTML
         for el in this
             el.innerHTML = v
+    val: (v) ->
+        if not v
+            return this.length and this[0].value
+        for el in this
+            el.value = v
+
 }, true)
 
 
