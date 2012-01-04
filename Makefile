@@ -54,9 +54,13 @@ prod/embed.js: embed.coffee
 	@mkdir -p $(@D)
 	coffee -cpb $< > $@
 
+# activate virtualenv if exists
 prod/style.css: build/style.css
 	@mkdir -p $(@D)
 	cp $< $@
+	[ -d ~/.virtualenvs/default ] && \
+	. ~/.virtualenvs/default/bin/activate && \
+	./css-namespacer.py $< > prod/namespaced.css || \
 	./css-namespacer.py $< > prod/namespaced.css
 
 prod/app.js: $(SOURCE) $(TEMPLATES:app/%=build/%.js)
