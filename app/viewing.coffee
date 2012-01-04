@@ -68,6 +68,10 @@ class PhotoView extends View
 
 class SetView extends View
     template: require 'templates/set.eco'
+    embed: '<script src="http://showkr.solovyov.net/embed.js" data-set="QQ"></script>'
+
+    events:
+        'click .embed': 'showEmbed'
 
     keys:
         'j': 'nextPhoto'
@@ -87,14 +91,23 @@ class SetView extends View
         # I should re-render here or use some data-to-html binding stuff instead
         # of this crap
         @model.bind 'change:title', =>
-            @$('h1').html(@model.title())
+            @$('[rel=title]').html(@model.title())
         @model.bind 'change:description', =>
-            @$('small').html(@model.description())
+            @$('[rel=description]').html(@model.description())
 
         for key, fn of @keys
             $.key key, _.bind(@[fn], @)
 
         @model.fetch()
+
+    showEmbed: (e) ->
+        e.preventDefault()
+        input = @make 'input', value: @embed.replace('QQ', @id)
+        parent = e.target.parentNode
+        old = parent.replaceChild(input, e.target)
+        input.focus()
+        $(input).bind 'blur', ->
+            parent.replaceChild(old, input)
 
     render: ->
         super

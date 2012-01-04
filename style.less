@@ -1,11 +1,15 @@
 @import 'bootstrap/bootstrap.less';
 
-h3, div {
-    > .idlink {
+.anchor:link, .anchor:visited {
+    color: #a5a5a5;
+}
+
+h1, h2, h3, div {
+    > .anchor {
         display: none;
     }
 
-    &:hover > .idlink {
+    &:hover > .anchor {
         display: inline;
     }
 }
