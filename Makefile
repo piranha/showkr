@@ -45,14 +45,21 @@ $(DEPS):
 
 # Deployment
 
-prod: all prod/app.js prod/index.html
-	@touch prod
-	cp $(CSS) prod/
+prod: all prod/app.js prod/index.html prod/style.css prod/embed.js
 
 deploy: prod
 	rsync -Pr prod/ $(SERVER)
 
-prod/app.js: $(SOURCE)
+prod/embed.js: embed.coffee
+	@mkdir -p $(@D)
+	coffee -cpb $< > $@
+
+prod/style.css: build/style.css
+	@mkdir -p $(@D)
+	cp $< $@
+	./css-namespacer.py $< > prod/namespaced.css
+
+prod/app.js: $(SOURCE) $(TEMPLATES:app/%=build/%.js)
 	@mkdir -p $(@D)
 	ender compile --level simple --use $(DEPS) $(VENDOR) $(TEMPLATES:app/%=build/%.js) $(SOURCE)
 	mv build/ender-app.js $@

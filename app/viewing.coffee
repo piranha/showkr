@@ -63,7 +63,8 @@ class PhotoView extends View
     scrollTo: (e) ->
         e.preventDefault()
         window.scroll(0, $(@el).offset().top)
-        showkr.navigate("#{@model.collection.set.id}/#{@model.id}", false)
+        if window.showkr
+            showkr.navigate("#{@model.collection.set.id}/#{@model.id}", false)
 
 
 class SetView extends View
@@ -81,7 +82,8 @@ class SetView extends View
 
         @model.photolist().bind 'reset', @addAll, this
         $(window).on 'load', _.bind(@scrollTo, this)
-        @model.bind 'change:title', showkr.addToHistory, showkr
+        if window.showkr
+            @model.bind 'change:title', showkr.addToHistory, showkr
         # FIXME ugly hack! :(
         # I should re-render here or use some data-to-html binding stuff instead
         # of this crap
@@ -131,10 +133,12 @@ class SetView extends View
             if foundNext
                 break
             {top} = $(photo.view.el).offset()
-            if top >= (window.scrollY - 25)
+            if top >= (window.scrollY + 25)
                 foundNext = true
         if photo
-            showkr.navigate("#{@model.id}/#{photo.id}", true)
+            if window.showkr
+                showkr.navigate("#{@model.id}/#{photo.id}", false)
+            window.scroll(0, top)
 
     prevPhoto: (e) ->
         e.preventDefault()
@@ -144,9 +148,12 @@ class SetView extends View
                 break
             previous = photo
         if previous
-            showkr.navigate("#{@model.id}/#{previous.id}", true)
+            if window.showkr
+                showkr.navigate("#{@model.id}/#{previous.id}", false)
+            window.scroll(0, top)
         else
-            showkr.navigate("#{@model.id}", false)
+            if window.showkr
+                showkr.navigate("#{@model.id}", false)
             window.scroll(0, 0)
 
 

@@ -11,18 +11,23 @@ $.ender({
             for n of k
                 @attr(n, k[n])
             return
+        if typeof v == 'undefined'
+            return this[0].getAttribute(k)
         for el in this
             el.setAttribute(k, v)
+        this
     html: (v) ->
         if not v
             return this.length and this[0].innerHTML
         for el in this
             el.innerHTML = v
+        this
     val: (v) ->
         if not v
             return this.length and this[0].value
         for el in this
             el.value = v
+        this
     offset: ->
         el = this[0]
         width = el.offsetWidth

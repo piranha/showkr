@@ -3,6 +3,6 @@
 </div>
 <div>
   <a href="<%- @authorlink() %>"><%- @authorname() %></a>
-  <a href="<%- @permalink() %>" class="idlink">¶</a>
+  <a href="<%- @permalink() %>" class="idlink">&para;</a>
 </div>
 <%- @content() %>

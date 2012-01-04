@@ -1,5 +1,5 @@
 <h3><%- @number() %>. <%- @title() %>
-  <a class="idlink" href="#<%- @setId() %>/<%- @id %>">¶</a>
+  <a class="idlink" href="#<%- @setId() %>/<%- @id %>">&para;</a>
 </h3>
 <div class="row">
   <div class="span11">
