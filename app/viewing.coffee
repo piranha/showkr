@@ -18,17 +18,16 @@ class CommentListView extends Backbone.View
     tagName: 'ul'
     className: 'comments'
 
-    initialize: ({@comments})->
+    initialize: ({@comments, @withHeader})->
         @comments.bind 'reset', @addAll, this
-        # NOTE: not sure the view will be created before comments are fetched...
-        # if @comments.length
-        #     @addAll(@comments)
 
     render: ->
-        @el.innerHTML = '<h2>Comments</h2>'
+        if @withHeader and @comments.length
+            @el.innerHTML = '<h2>Comments</h2>'
         this
 
     addAll: (comments) ->
+        @render()
         frag = document.createDocumentFragment()
         for comment in comments.models
             @addOne(comment, frag)
@@ -101,8 +100,9 @@ class SetView extends View
         super
         if not @model.comments().length
             @model.comments().fetch()
-        @comments = new CommentListView(comments: @model.comments())
-        @comments.render()
+        @comments = new CommentListView
+            comments: @model.comments()
+            withHeader: true
         this
 
     addAll: (photos) ->
