@@ -63,10 +63,9 @@ prod/style.css: build/style.css
 	./css-namespacer.py $< > prod/namespaced.css || \
 	./css-namespacer.py $< > prod/namespaced.css
 
-prod/app.js: $(SOURCE) $(TEMPLATES:app/%=build/%.js)
+prod/app.js: $(DEPS) $(VENDOR) $(TEMPLATES:app/%=build/%.js) $(SOURCE)
 	@mkdir -p $(@D)
-	ender compile --level simple --use $(DEPS) $(VENDOR) $(TEMPLATES:app/%=build/%.js) $(SOURCE)
-	mv build/ender-app.js $@
+	cat $^ | uglifyjs > $@
 
 prod/index.html: index.html prod/app.js
 	@mkdir -p $(@D)
@@ -80,6 +79,9 @@ clean:
 
 watch: all
 	fswatch . make
+
+watch-prod: prod
+	fswatch . 'make prod'
 
 info: $(DEPS)
 	ender info --use $<

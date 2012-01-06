@@ -1,3 +1,4 @@
+$ = ender
 _ = require 'underscore'
 Backbone = require 'backbone'
 exports = {}
@@ -16,18 +17,21 @@ $.ender({
         for el in this
             el.setAttribute(k, v)
         this
+
     html: (v) ->
         if not v
             return this.length and this[0].innerHTML
         for el in this
             el.innerHTML = v
         this
+
     val: (v) ->
         if not v
             return this.length and this[0].value
         for el in this
             el.value = v
         this
+
     offset: ->
         el = this[0]
         width = el.offsetWidth
@@ -40,6 +44,18 @@ $.ender({
             left += el.offsetLeft
 
         return {top, left, height, width}
+
+    data: ->
+        data = {}
+        for attr in this[0].attributes
+            if attr.name[..4] == 'data-'
+                data[attr.name[5..]] = if attr.value == 'false'
+                        false
+                    else if attr.value == 'true'
+                        true
+                    else
+                        attr.value
+        return data
 
 }, true)
 
@@ -74,8 +90,11 @@ class exports.Model extends Backbone.Model
 
 
 class exports.View extends Backbone.View
+    context: ->
+        @model
+
     render: ->
-        @el.innerHTML = @template(@model)
+        @el.innerHTML = @template(@context())
         this
 
 

@@ -1,3 +1,4 @@
+$ = ender
 _ = require 'underscore'
 Backbone = require 'backbone'
 {View} = require 'util'
@@ -68,7 +69,6 @@ class PhotoView extends View
 
 class SetView extends View
     template: require 'templates/set.eco'
-    embed: '<script src="http://showkr.solovyov.net/embed.js" data-set="QQ"></script>'
 
     events:
         'click .embed': 'showEmbed'
@@ -79,7 +79,7 @@ class SetView extends View
         'down': 'nextPhoto'
         'up': 'prevPhoto'
 
-    initialize: ->
+    initialize: ({@config}) ->
         @model = Set.getOrCreate(@id)
         @views = {}
 
@@ -87,9 +87,8 @@ class SetView extends View
         $(window).on 'load', _.bind(@scrollTo, this)
         if window.showkr
             @model.bind 'change:title', showkr.addToHistory, showkr
-        # FIXME ugly hack! :(
-        # I should re-render here or use some data-to-html binding stuff instead
-        # of this crap
+        # FIXME I should re-render here or use some data-to-html binding stuff
+        # instead of this
         @model.bind 'change:title', =>
             @$('[rel=title]').html(@model.title())
         @model.bind 'change:description', =>
@@ -100,14 +99,22 @@ class SetView extends View
 
         @model.fetch()
 
+    embed: ->
+        ("<script src='http://localhost/showkr-prod/embed.js' " +
+         "data-set='#{@id}' data-title='false'></script>")
+
     showEmbed: (e) ->
         e.preventDefault()
-        input = @make 'input', value: @embed.replace('QQ', @id)
+        input = @make 'input', value: @embed()
         parent = e.target.parentNode
         old = parent.replaceChild(input, e.target)
         input.focus()
         $(input).bind 'blur', ->
             parent.replaceChild(old, input)
+
+    context: ->
+        model: @model
+        config: @config
 
     render: ->
         super

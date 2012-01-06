@@ -1,0 +1,85 @@
+<html>
+<head>
+  <style>
+    .showkr { display: none; }
+  </style>
+</head>
+<!--
+   Inlining css:
+   document.styleSheets
+   http://www.tikku.com/css-inline-transformer-simplified
+   http://www.sign-up.to/mally/
+   http://www.mailermailer.com/labs/projects/CSS-Inliner.rwp
+   http://inlinestyler.torchboxapps.com/
+   http://beaker.mailchimp.com/inline-css
+   -->
+<body>
+  <textarea style="width: 100%; height: 100%;">Please wait a bit...</textarea>
+  <script type="text/javascript" src="embed.js" data-set="72157625002065401"></script>
+  <script type="text/javascript">
+    function getSS(detector) {
+        for (var i = 0, l = document.styleSheets.length; i < l; i++) {
+            if (detector(document.styleSheets[i]))
+                return document.styleSheets[i];
+        }
+    }
+
+    function getStyles(cb) {
+        var linked = getSS(function(ss) { return !!ss.href; });
+        var params = {
+            url: linked.href,
+            type: 'string',
+            success: function(data) {
+                var style = document.createElement('style');
+                style.title = 'embedding';
+                style.innerHTML = data.response;
+                document.head.appendChild(style);
+                var ss = getSS(function(ss) {
+                    return ss.title == style.title;
+                });
+                cb(ss);
+            }
+        }
+        $.ajax(params);
+    }
+
+    function inliner(cb) {
+        var html = $('.showkr').html();
+        getStyles(function(ss) {
+            var el, s;
+            for (var i = 0, l = ss.cssRules.length; i < l; i++) {
+                s = ss.cssRules[i];
+                el = $(s.selectorText);
+                if (!el) continue;
+                el.attr('style', s.style.cssText);
+            }
+            cb($('.showkr').html());
+        });
+    }
+
+    function embed() {
+        var ta = $('textarea')[0];
+        inliner(function(html) {
+            var val = '<div class="showkr">' + html + '</div>';
+            ta.value = val;
+            ta.focus();
+            ta.select();
+        });
+    }
+
+    setTimeout(function() {
+        window._showkr.current.model.photolist().bind('reset', function(coll) {
+            var length = coll.length, count = 0;
+            coll.each(function(model) {
+                model.comments().bind('reset', function() {
+                    count++;
+                    if (count == length) {
+                        embed();
+                    }
+                });
+            });
+        });
+    }, 1);
+  </script>
+</body>
+</html>

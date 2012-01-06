@@ -1,3 +1,4 @@
+$ = ender
 _ = require 'underscore'
 
 BASE = 'http://api.flickr.com/services/rest/'

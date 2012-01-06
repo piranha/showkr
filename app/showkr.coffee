@@ -1,3 +1,4 @@
+$ = ender
 _ = require 'underscore'
 Backbone = require 'backbone'
 {addOrPromote, View} = require 'util'
@@ -53,12 +54,17 @@ class @Showkr extends Backbone.Router
         ':set': 'set'
         ':set/:photo': 'set'
 
-    initialize: (el='#main', set) ->
+    defaults:
+        set: null
+        title: true
+
+    initialize: (el='#main', config) ->
+        @config = _.extend({}, @defaults, config)
         @views = {}
         @el = $(el)[0]
         $.key 'h', _.bind(@showHelp, @)
-        if set
-            setTimeout (=> @set(set)), 1
+        if @config.set
+            setTimeout (=> @set(@config.set)), 1
         else
             setTimeout (-> Backbone.history.start()), 1
 
@@ -88,7 +94,8 @@ class @Showkr extends Backbone.Router
         [form, isNew] = @getView('form', => new Form(app: this))
 
     set: (set, photo) ->
-        [view, isNew] = @getView("set-#{set}", -> new SetView(id: set))
+        [view, isNew] = @getView("set-#{set}", =>
+            new SetView(id: set, config: @config))
         if photo
             view.scrollTo(photo)
 

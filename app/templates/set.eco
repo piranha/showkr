@@ -1,4 +1,6 @@
-<h1><span rel="title"><%- @title() %></span>
+<% if @config.title: %>
+<h1><span rel="title"><%- @model.title() %></span>
   <a href="#" class="anchor embed">embed</a>
 </h1>
-<small rel="description"><%- @description() %></small>
+<% end %>
+<small rel="description"><%- @model.description() %></small>
