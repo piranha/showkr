@@ -100,7 +100,7 @@ class SetView extends View
         @model.fetch()
 
     embed: ->
-        ("<script src='http://localhost/showkr-prod/embed.js' " +
+        ("<script src='http://showkr.org/embed.js' " +
          "data-set='#{@id}' data-title='false'></script>")
 
     showEmbed: (e) ->
