@@ -8,7 +8,7 @@
                placeholder="URL or id of a photoset">
       </div>
     </div>
-    <% if @history: %>
+    <% if @history.length: %>
     <div class="input">
       Or select something from your history:
       <ul>
