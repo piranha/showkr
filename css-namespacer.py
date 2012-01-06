@@ -22,7 +22,9 @@ def main(fn):
             else:
                 s.selectorText = PREFIX + ' ' + s.selectorText
     text = style.cssText
-    print text.replace('\x00', '\\0')
+    print (text
+           .replace('\x00', '\\0')
+           .replace('\xe2\x80\x94\xc2\xa0', '\\2014 \\00A0'))
 
 
 if __name__ == '__main__':
