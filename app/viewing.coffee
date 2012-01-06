@@ -153,7 +153,7 @@ class SetView extends View
             if foundNext
                 break
             {top} = $(photo.view.el).offset()
-            if top >= (window.scrollY + 25)
+            if top > window.scrollY
                 foundNext = true
         if photo
             if window.showkr
@@ -164,13 +164,13 @@ class SetView extends View
         e.preventDefault()
         for photo in @model.photolist().models
             {top} = $(photo.view.el).offset()
-            if top >= (window.scrollY - 25)
+            if top >= window.scrollY
                 break
             previous = photo
         if previous
             if window.showkr
                 showkr.navigate("#{@model.id}/#{previous.id}", false)
-            window.scroll(0, top)
+            window.scroll(0, $(previous.view.el).offset().top)
         else
             if window.showkr
                 showkr.navigate("#{@model.id}", false)
