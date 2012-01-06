@@ -1,0 +1,69 @@
+<p>
+  This is simple browser for photos hosted
+  on <a href="http://flickr.com/">Flickr</a>. It has only two modes of
+  operation: viewing a photoset or looking at user's sets.
+</p>
+
+<h2>Using</h2>
+
+<p>
+  If you want to watch a single set, go to <a href="#">main page</a> and put a
+  link to a set (or just set's id) in a left input field. Then press
+  <span class="label">Submit</span> button.
+</p>
+
+<p>
+  If you want to watch a list of user's sets, go to <a href="#">main page</a>
+  and put a link to user's profile (or just a username from that URL). Then
+  press <span class="label">Submit</span> button.
+</p>
+
+<p>
+  Single set view has bound
+  keys <span class="label">j</span>/<span class="label">k</span>
+  and <span class="label">up</span>/<span class="label">down</span> for going to
+  next/previous photo.
+</p>
+
+<p>
+  After doing any of those actions URL is changed so you can send it to your
+  friends. More than that, you can embed those pictures in your own site (see
+  below).
+</p>
+
+<h2>Embedding</h2>
+
+<p>
+  This applications supports embedding in other sites. Easiest way to do this is
+  to go to desired page (single set or user's sets) and hover with a mouse over
+  title. <code>embed</code> link should appear. After clicking on it you'll be
+  presented with an input box, which value contains script tag definition, which
+  you can put on your page.
+</p>
+
+<p>
+  You can construct this script tag yourself, using this code as starting point:
+</p>
+
+<pre>
+&lt;script src="http://showkr.org/embed.js" data-set="&lt;set-id>">&lt;/script>
+</pre>
+
+<p>
+  There are three attributes which are used by application to determine what
+  should be done:
+</p>
+
+<dl>
+  <dt>data-set</dt>
+  <dd>Your set id.</dd>
+
+  <dt>data-user</dt>
+  <dd>Username taken from url or user id. Unused, if <code>data-set</code> is supplied.</dd>
+
+  <dt>data-title</dt>
+  <dd>
+    <code>true</code> (default) or <code>false</code>. Determines if title
+    should be shown (maybe your page already has title).
+  </dd>
+</dl>

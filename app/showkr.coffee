@@ -7,6 +7,13 @@ Backbone = require 'backbone'
 {UserView} = require 'browsing'
 
 
+class About extends Backbone.View
+    template: require 'templates/about.eco'
+    render: ->
+        @el.innerHTML = @template()
+        this
+
+
 class Form extends Backbone.View
     tagName: 'form'
     template: require 'templates/form.eco'
@@ -50,6 +57,7 @@ class Form extends Backbone.View
 class @Showkr extends Backbone.Router
     routes:
         '': 'index'
+        'about': 'about'
         'user/:user': 'user'
         ':set': 'set'
         ':set/:photo': 'set'
@@ -111,6 +119,9 @@ class @Showkr extends Backbone.Router
     user: (user) ->
         [view, isNew] = @getView("user-#{user}", =>
             new UserView(user: user, config: @config))
+
+    about: ->
+        @getView('about', -> new About())
 
     # ## Helpers
 

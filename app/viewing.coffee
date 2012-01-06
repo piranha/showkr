@@ -103,15 +103,6 @@ class SetView extends View
         ("<script src='http://showkr.org/embed.js' " +
          "data-set='#{@id}' data-title='false'></script>")
 
-    showEmbed: (e) ->
-        e.preventDefault()
-        input = @make 'input', value: @embed()
-        parent = e.target.parentNode
-        old = parent.replaceChild(input, e.target)
-        input.focus()
-        $(input).bind 'blur', ->
-            parent.replaceChild(old, input)
-
     context: ->
         model: @model
         config: @config

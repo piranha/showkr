@@ -97,5 +97,14 @@ class exports.View extends Backbone.View
         @el.innerHTML = @template(@context())
         this
 
+    showEmbed: (e) ->
+        e.preventDefault()
+        input = @make 'input', value: @embed()
+        parent = e.target.parentNode
+        old = parent.replaceChild(input, e.target)
+        input.focus()
+        $(input).bind 'blur', ->
+            parent.replaceChild(old, input)
+
 
 provide 'util', exports

@@ -23,6 +23,9 @@ class BrowsingSetView extends View
 class UserView extends View
     template: require 'templates/user.eco'
 
+    events:
+        'click .embed': 'showEmbed'
+
     initialize: ({user, @config}) ->
         if ~user.indexOf('@')
             @model = new User(id: user)
@@ -33,6 +36,11 @@ class UserView extends View
 
         @model.bind 'change', @render, this
         @model.sets().bind 'reset', @addAll, this
+
+    embed: ->
+        ("<script src='http://showkr.org/embed.js' " +
+         "data-user='#{@model.username() or @model.id}' " +
+         "data-title='false'></script>")
 
     context: ->
         model: @model
