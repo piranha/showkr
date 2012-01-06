@@ -63,10 +63,16 @@ class @Showkr extends Backbone.Router
         @views = {}
         @el = $(el)[0]
         $.key 'h', _.bind(@showHelp, @)
-        if @config.set
-            setTimeout (=> @set(@config.set)), 1
-        else
-            setTimeout (-> Backbone.history.start()), 1
+
+        init = =>
+            if @config.set
+                @set(@config.set)
+            else
+                if @config.user
+                    @navigate("user/#{@config.user}", true)
+                Backbone.history.start()
+
+        setTimeout init, 1
 
     # returns a view (creates if necessary) and switches to it
     getView: (id, creator) ->
