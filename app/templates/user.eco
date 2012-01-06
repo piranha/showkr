@@ -1,1 +1,3 @@
-<h1>Sets of <%- @username() || @id %></h1>
+<% if @config.title: %>
+<h1>Sets of <%- @model.username() || @model.id %></h1>
+<% end %>

@@ -23,7 +23,7 @@ class BrowsingSetView extends View
 class UserView extends View
     template: require 'templates/user.eco'
 
-    initialize: ({user}) ->
+    initialize: ({user, @config}) ->
         if ~user.indexOf('@')
             @model = new User(id: user)
         else
@@ -33,6 +33,10 @@ class UserView extends View
 
         @model.bind 'change', @render, this
         @model.sets().bind 'reset', @addAll, this
+
+    context: ->
+        model: @model
+        config: @config
 
     addAll: (sets) ->
         @render()

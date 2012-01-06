@@ -106,7 +106,8 @@ class @Showkr extends Backbone.Router
             view.scrollTo(photo)
 
     user: (user) ->
-        [view, isNew] = @getView("user-#{user}", -> new UserView(user: user))
+        [view, isNew] = @getView("user-#{user}", =>
+            new UserView(user: user, config: @config))
 
     # ## Helpers
 
