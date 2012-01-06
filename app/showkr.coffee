@@ -63,14 +63,17 @@ class @Showkr extends Backbone.Router
         @views = {}
         @el = $(el)[0]
         $.key 'h', _.bind(@showHelp, @)
+        history = Backbone.history
 
         init = =>
             if @config.set
                 @set(@config.set)
+            else if @config.user
+                if not location.hash or not history.loadUrl(location.hash)
+                    @navigate("user/#{@config.user}", false)
+                history.start()
             else
-                if @config.user
-                    @navigate("user/#{@config.user}", true)
-                Backbone.history.start()
+                history.start()
 
         setTimeout init, 1
 
