@@ -171,7 +171,7 @@ class SetList extends Backbone.Collection
 
 
 class User extends Model
-    # that's not really a username, but who cares
+    # that's not really a username - part of the url, but who cares
     @field 'username'
     @field 'sets'
 

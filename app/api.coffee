@@ -70,5 +70,9 @@ addMethods API,
     userByUrl:
         args: ['url']
         method: 'flickr.urls.lookupUser'
+    # unused
+    userInfo:
+        args: ['user_id']
+        method: 'flickr.people.getInfo'
 
 provide 'api', API

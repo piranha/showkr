@@ -8,16 +8,18 @@
                placeholder="URL or id of a photoset">
       </div>
     </div>
-    <% if @history.length: %>
     <div class="input">
+      <% if @history.length: %>
       Or select something from your history:
       <ul>
         <% for item in @history: %>
         <li><a href="#<%- item[0] %>"><%- item[1] %></a></li>
         <% end %>
       </ul>
+      <% else: %>
+      Or watch an <a href="#72157600233851176">example</a>.
+      <% end %>
     </div>
-    <% end %>
   </fieldset>
 
   <fieldset class="span8">
