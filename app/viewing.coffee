@@ -15,7 +15,7 @@ class CommentView extends View
         @model.bind 'change', @render, this
 
 
-class CommentListView extends Backbone.View
+class CommentSliceView extends Backbone.View
     pageBy: 5
     currentPage: 1
 
@@ -85,7 +85,7 @@ class Paginator extends Backbone.View
         @trigger 'next'
 
 
-class CommentsWrapper extends Backbone.View
+class CommentListView extends Backbone.View
     template: require 'templates/comment-wrapper.eco'
 
     initialize: ({@comments, @withHeader})->
@@ -99,7 +99,7 @@ class CommentsWrapper extends Backbone.View
             comments: @comments
             pageBy: CommentListView::pageBy
         @paginator = new Paginator(el: @$('.pagination')[0])
-        @inner = new CommentListView
+        @inner = new CommentSliceView
             el: @$('ul.comments')[0]
             comments: @comments
 
@@ -128,7 +128,7 @@ class PhotoView extends View
         super
         if not @model.comments().length
             @model.comments().fetch()
-        @comments = new CommentsWrapper
+        @comments = new CommentListView
             el: @$('.comments')[0]
             comments: @model.comments()
         this
