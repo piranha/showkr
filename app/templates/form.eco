@@ -17,7 +17,7 @@
         <% end %>
       </ul>
       <% else: %>
-      Or watch an <a href="#72157600233851176">example</a>.
+      Or watch an <a href="#72157627590185596">example</a>.
       <% end %>
     </div>
   </fieldset>
