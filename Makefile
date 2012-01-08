@@ -9,6 +9,21 @@ VENDOR=$(wildcard vendor/*.js)
 
 SERVER=sapientisat.org:web/showkr/
 
+#
+# Macros
+#
+
+# activate virtualenv if exists
+namespacer = [ -d ~/.virtualenvs/default ] && \
+	. ~/.virtualenvs/default/bin/activate && \
+	./css-namespacer.py $(1) > $(2) || \
+	./css-namespacer.py $(1) > $(2)
+
+
+#
+# Building
+#
+
 all: $(TEMPLATES:app/%=build/%.js) $(SOURCE) $(CSS) $(VENDOR:%=build/%) build/index.html
 
 build/%.css: %.less
@@ -42,10 +57,11 @@ $(DEPS):
 	ender build -o $@ qwery bean reqwest backbone keymaster
 	sed -i '' 's:root.Zepto;$\:root.ender;:' $@
 
-
+#
 # Deployment
+#
 
-prod: all prod/app.js prod/index.html prod/style.css prod/embed.js
+prod: all prod/app.js prod/index.html prod/style.css prod/namespaced.css prod/embed.js
 
 deploy: prod
 	rsync -Pr prod/ $(SERVER)
@@ -54,14 +70,13 @@ prod/embed.js: embed.coffee
 	@mkdir -p $(@D)
 	coffee -cpb $< > $@
 
-# activate virtualenv if exists
 prod/style.css: build/style.css
 	@mkdir -p $(@D)
-	cp $< $@
-	[ -d ~/.virtualenvs/default ] && \
-	. ~/.virtualenvs/default/bin/activate && \
-	./css-namespacer.py $< > prod/namespaced.css || \
-	./css-namespacer.py $< > prod/namespaced.css
+	$(call namespacer, compress $<, $@)
+
+prod/namespaced.css: build/style.css
+	@mkdir -p $(@D)
+	$(call namespacer, namespace $<, $@)
 
 prod/app.js: $(DEPS) $(VENDOR) $(TEMPLATES:app/%=build/%.js) $(SOURCE)
 	@mkdir -p $(@D)
