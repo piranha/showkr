@@ -18,19 +18,35 @@ class CommentView extends View
 class CommentListView extends Backbone.View
     tagName: 'ul'
     className: 'comments'
+    template: require 'templates/comment-list.eco'
+
+    events:
+        'click .more': 'renderMore'
 
     initialize: ({@comments, @withHeader})->
         @comments.bind 'reset', @addAll, this
 
     render: ->
-        if @withHeader and @comments.length
-            @el.innerHTML = '<h2>Comments</h2>'
+        @el.innerHTML = @template
+            withHeader: @withHeader
+            comments: @comments
         this
 
-    addAll: (comments) ->
+    renderMore: (e) ->
+        e.preventDefault()
+        @render()
+        @addAll(@comments, {}, true)
+
+    addAll: (comments, options, full) ->
         @render()
         frag = document.createDocumentFragment()
-        for comment in comments.models
+        for comment, i in comments.models
+            if i > 5 and not full
+                a = @make 'a', {href: '#'}, 'More comments...'
+                more = @make 'li', {class: 'more'}, ''
+                more.appendChild(a)
+                frag.appendChild more
+                break
             @addOne(comment, frag)
         @el.appendChild(frag)
 

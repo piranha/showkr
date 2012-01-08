@@ -42,7 +42,8 @@ build/vendor/%.js: vendor/%.js
 	@mkdir -p $(@D)
 	cp $< $@
 
-build/index.html: index.html $(addprefix build/,$(SOURCE) $(VENDOR) $(DEPS))
+build/index.html: index.html $(addprefix build/,\
+		$(SOURCE) $(VENDOR) $(DEPS) $(TEMPLATES))
 	@mkdir -p $(@D)
 	DEPS="$(DEPS) $(TEMPLATES) $(VENDOR) $(SOURCE)" awk -f build.awk $< > $@
 
@@ -81,7 +82,7 @@ prod/namespaced.css: build/style.css
 	$(call namespacer, namespace $<, $@)
 
 prod/app.js: $(addprefix build/,\
-	$(DEPS) $(VENDOR) $(TEMPLATES) $(SOURCE))
+		$(DEPS) $(VENDOR) $(TEMPLATES) $(SOURCE))
 	@mkdir -p $(@D)
 	cat $^ | uglifyjs > $@
 

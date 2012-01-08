@@ -1,0 +1,3 @@
+<% if @withHeader and @comments.length: %>
+<h2>Comments</h2>
+<% end %>
