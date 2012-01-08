@@ -24,7 +24,7 @@ namespacer = [ -d ~/.virtualenvs/default ] && \
 # Building
 #
 
-all: $(TEMPLATES:app/%=build/%.js) $(SOURCE) $(CSS) $(VENDOR:%=build/%) build/index.html
+all: $(TEMPLATES:app/%=build/%.js) $(SOURCE) $(CSS) $(VENDOR:%=build/%) build/index.html build/favicon.ico
 
 build/%.css: %.less
 	@mkdir -p $(@D)
@@ -57,11 +57,15 @@ $(DEPS):
 	ender build -o $@ qwery bean reqwest backbone keymaster
 	sed -i '' 's:root.Zepto;$\:root.ender;:' $@
 
+%/favicon.ico: favicon.ico
+	@mkdir -p $(@D)
+	cp $< $@
+
 #
 # Deployment
 #
 
-prod: all prod/app.js prod/index.html prod/style.css prod/namespaced.css prod/embed.js
+prod: all prod/app.js prod/index.html prod/style.css prod/namespaced.css prod/embed.js prod/favicon.ico
 
 deploy: prod
 	rsync -Pr prod/ $(SERVER)
