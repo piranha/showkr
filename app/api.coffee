@@ -75,4 +75,21 @@ addMethods API,
         args: ['user_id']
         method: 'flickr.people.getInfo'
 
-provide 'api', API
+
+class StatHat
+    constructor: (@ukey, @key) ->
+
+    count: (value=1) ->
+        query = $.toQueryString({@ukey, @key, count: value})
+        $.ajax
+            url: 'http://api.stathat.com/c?' + query
+            type: 'jsonp'
+
+    value: (value) ->
+        query = $.toQueryString({@ukey, @key, value: value})
+        $.ajax
+            url: 'http://api.stathat.com/v?' + query
+            type: 'jsonp'
+
+
+provide 'api', {API, StatHat}

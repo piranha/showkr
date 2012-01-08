@@ -1,7 +1,7 @@
 _ = require 'underscore'
 Backbone = require 'backbone'
 {Model, formatDate} = require 'util'
-API = require 'api'
+{API} = require 'api'
 
 
 class Comment extends Model
