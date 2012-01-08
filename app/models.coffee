@@ -14,7 +14,9 @@ class Comment extends Model
     @field 'permalink'
 
     content: -> @_content()
-    date: -> @datecreate()
+    date: ->
+        d = new Date(parseInt(@datecreate()) * 1000)
+        formatDate(d)
 
     authorlink: ->
         "http://flickr.com/photos/#{@author()}/"
