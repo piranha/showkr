@@ -1,10 +1,9 @@
 .PHONY: deploy watch
 
-TEMPLATES=$(wildcard app/templates/*.eco)
-_SOURCE=util api models viewing browsing showkr
-SOURCE=$(_SOURCE:%=build/%.js)
-CSS=build/style.css
-DEPS=build/ender.js
+TEMPLATES=$(patsubst app/%,%.js,$(wildcard app/templates/*.eco))
+SOURCE=$(patsubst %,%.js,util api models viewing browsing showkr)
+CSS=style.css
+DEPS=ender.js
 VENDOR=$(wildcard vendor/*.js)
 
 SERVER=sapientisat.org:web/showkr/
@@ -24,13 +23,14 @@ namespacer = [ -d ~/.virtualenvs/default ] && \
 # Building
 #
 
-all: $(TEMPLATES:app/%=build/%.js) $(SOURCE) $(CSS) $(VENDOR:%=build/%) build/index.html build/favicon.ico
+all: $(addprefix build/,\
+	$(TEMPLATES) $(SOURCE) $(CSS) $(VENDOR) index.html favicon.ico)
 
 build/%.css: %.less
 	@mkdir -p $(@D)
 	lessc $< $@
 
-build/%.js: app/%.coffee $(DEPS)
+build/%.js: app/%.coffee $(addprefix build/,$(DEPS))
 	@mkdir -p $(@D)
 	coffee -pc $< > $@
 
@@ -42,17 +42,11 @@ build/vendor/%.js: vendor/%.js
 	@mkdir -p $(@D)
 	cp $< $@
 
-build/index.html: index.html $(SOURCE) $(VENDOR) $(DEPS)
+build/index.html: index.html $(addprefix build/,$(SOURCE) $(VENDOR) $(DEPS))
 	@mkdir -p $(@D)
-	DEPS="$(DEPS:build/%=%) $(TEMPLATES:app/%=%.js) $(VENDOR) $(SOURCE:build/%=%)" awk -f build.awk $< > $@
+	DEPS="$(DEPS) $(TEMPLATES) $(VENDOR) $(SOURCE)" awk -f build.awk $< > $@
 
-%/static: static
-	rsync -r $</ $@/ 
-
-node_modules/eco:
-	npm install eco
-
-$(DEPS):
+build/$(DEPS):
 	@mkdir -p $(@D)
 	ender build -o $@ qwery bean reqwest backbone keymaster
 	sed -i '' 's:root.Zepto;$\:root.ender;:' $@
@@ -61,11 +55,15 @@ $(DEPS):
 	@mkdir -p $(@D)
 	cp $< $@
 
+node_modules/eco:
+	npm install eco
+
 #
 # Deployment
 #
 
-prod: all prod/app.js prod/index.html prod/style.css prod/namespaced.css prod/embed.js prod/favicon.ico
+prod: all $(addprefix prod/,\
+	app.js index.html style.css namespaced.css embed.js favicon.ico)
 
 deploy: prod
 	rsync -Pr prod/ $(SERVER)
@@ -82,7 +80,8 @@ prod/namespaced.css: build/style.css
 	@mkdir -p $(@D)
 	$(call namespacer, namespace $<, $@)
 
-prod/app.js: $(DEPS) $(VENDOR) $(TEMPLATES:app/%=build/%.js) $(SOURCE)
+prod/app.js: $(addprefix build/,\
+	$(DEPS) $(VENDOR) $(TEMPLATES) $(SOURCE))
 	@mkdir -p $(@D)
 	cat $^ | uglifyjs > $@
 
