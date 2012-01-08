@@ -16,43 +16,100 @@ class CommentView extends View
 
 
 class CommentListView extends Backbone.View
-    tagName: 'ul'
-    className: 'comments'
-    template: require 'templates/comment-list.eco'
+    pageBy: 5
+    currentPage: 1
 
-    events:
-        'click .more': 'renderMore'
-
-    initialize: ({@comments, @withHeader})->
-        @comments.bind 'reset', @addAll, this
+    initialize: ({@comments})->
+        @comments.bind 'reset', @render, this
+        @bind 'page', @render, this
 
     render: ->
+        @el.innerHTML = ''
+        frag = document.createDocumentFragment()
+        for comment in @getPage().list
+            frag.appendChild(@addOne(comment))
+        @el.appendChild(frag)
+        this
+
+    addOne: (comment) ->
+        view = new CommentView(model: comment)
+        return view.render().el
+
+    getPage: ->
+        start = (@currentPage - 1) * @pageBy
+        end = start + @pageBy
+        if end > @comments.length
+            end = @comments.length
+        return {
+            length: @comments.length
+            pageBy: @pageBy
+            page: @currentPage
+            start: start
+            end: end
+            list: @comments.models.slice(start, end)
+            hasNext: @currentPage * @pageBy < @comments.length
+            hasPrev: @currentPage > 1
+        }
+
+    prevPage: ->
+        if @currentPage > 1
+            @currentPage -= 1
+            @trigger 'page', this
+
+    nextPage: ->
+        if @currentPage * @pageBy < @comments.length
+            @currentPage += 1
+            @trigger 'page', this
+
+
+class Paginator extends Backbone.View
+    template: require 'templates/paginator.eco'
+
+    events:
+        'click .prev': 'prevPage'
+        'click .next': 'nextPage'
+        'click .disabled': 'disabled'
+
+    render: (view) ->
+        @el.innerHTML = @template(view.getPage())
+
+    disabled: (e) ->
+        e.preventDefault()
+
+    prevPage: (e) ->
+        e.preventDefault()
+        @trigger 'prev'
+
+    nextPage: (e) ->
+        e.preventDefault()
+        @trigger 'next'
+
+
+class CommentsWrapper extends Backbone.View
+    template: require 'templates/comment-wrapper.eco'
+
+    initialize: ({@comments, @withHeader})->
+        @comments.bind 'reset', @render, this
+
+    render: ->
+        return unless @comments.length
+
         @el.innerHTML = @template
             withHeader: @withHeader
             comments: @comments
+            pageBy: CommentListView::pageBy
+        @paginator = new Paginator(el: @$('.pagination')[0])
+        @inner = new CommentListView
+            el: @$('ul.comments')[0]
+            comments: @comments
+
+        @inner.bind 'page', @paginator.render, @paginator
+        @paginator.bind 'next', @inner.nextPage, @inner
+        @paginator.bind 'prev', @inner.prevPage, @inner
+
+        @inner.trigger 'page', @inner
+
         this
-
-    renderMore: (e) ->
-        e.preventDefault()
-        @render()
-        @addAll(@comments, {}, true)
-
-    addAll: (comments, options, full) ->
-        @render()
-        frag = document.createDocumentFragment()
-        for comment, i in comments.models
-            if i > 5 and not full
-                a = @make 'a', {href: '#'}, 'More comments...'
-                more = @make 'li', {class: 'more'}, ''
-                more.appendChild(a)
-                frag.appendChild more
-                break
-            @addOne(comment, frag)
-        @el.appendChild(frag)
-
-    addOne: (comment, frag) ->
-        view = new CommentView(model: comment)
-        frag.appendChild view.render().el
 
 
 class PhotoView extends View
@@ -71,7 +128,7 @@ class PhotoView extends View
         super
         if not @model.comments().length
             @model.comments().fetch()
-        @comments = new CommentListView
+        @comments = new CommentsWrapper
             el: @$('.comments')[0]
             comments: @model.comments()
         this

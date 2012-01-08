@@ -5,6 +5,6 @@
   <div class="span11">
     <a href="<%- @flickrUrl() %>"><img src="<%- @medium() %>"></a>
   </div>
-  <ul class="span5 comments">
-  </ul>
+  <div class="span5 comments">
+  </div>
 </div>

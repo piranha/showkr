@@ -1,3 +1,9 @@
 <% if @withHeader and @comments.length: %>
 <h2>Comments</h2>
 <% end %>
+
+<ul class="comments">
+</ul>
+
+<div class="pagination">
+</div>
