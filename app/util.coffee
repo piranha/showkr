@@ -89,6 +89,43 @@ class exports.Model extends Backbone.Model
                 @set(data)
 
 
+class exports.Collection extends Backbone.Collection
+    currentPage: 1
+
+    constructor: (models, {@pageBy}) ->
+        super
+
+    getPage: ->
+        start = (@currentPage - 1) * @pageBy
+        end = start + @pageBy
+        if not @pageBy or end > @length
+            end = @length
+        return {
+            length: @length
+            pageBy: @pageBy
+            current: @currentPage
+            start: start
+            end: end
+            models: @models.slice(start, end)
+            hasNext: @currentPage * @pageBy < @length
+            hasPrev: @currentPage > 1
+        }
+
+    prevPage: ->
+        if not @pageBy
+            throw "Property 'pageBy' is not defined on #{this}"
+        if @currentPage > 1
+            @currentPage -= 1
+            @trigger 'page', @getPage()
+
+    nextPage: ->
+        if not @pageBy
+            throw "Property 'pageBy' is not defined on #{this}"
+        if @currentPage * @pageBy < @length
+            @currentPage += 1
+            @trigger 'page', @getPage()
+
+
 class exports.View extends Backbone.View
     context: ->
         @model

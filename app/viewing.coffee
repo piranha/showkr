@@ -19,14 +19,13 @@ class CommentSliceView extends Backbone.View
     pageBy: 5
     currentPage: 1
 
-    initialize: ({@comments})->
-        @comments.bind 'reset', @render, this
-        @bind 'page', @render, this
+    initialize: ({@comments}) ->
+        @comments.bind 'page', @render, this
 
-    render: ->
+    render: (page) ->
         @el.innerHTML = ''
         frag = document.createDocumentFragment()
-        for comment in @getPage().list
+        for comment in page.models
             frag.appendChild(@addOne(comment))
         @el.appendChild(frag)
         this
@@ -34,32 +33,6 @@ class CommentSliceView extends Backbone.View
     addOne: (comment) ->
         view = new CommentView(model: comment)
         return view.render().el
-
-    getPage: ->
-        start = (@currentPage - 1) * @pageBy
-        end = start + @pageBy
-        if end > @comments.length
-            end = @comments.length
-        return {
-            length: @comments.length
-            pageBy: @pageBy
-            page: @currentPage
-            start: start
-            end: end
-            list: @comments.models.slice(start, end)
-            hasNext: @currentPage * @pageBy < @comments.length
-            hasPrev: @currentPage > 1
-        }
-
-    prevPage: ->
-        if @currentPage > 1
-            @currentPage -= 1
-            @trigger 'page', this
-
-    nextPage: ->
-        if @currentPage * @pageBy < @comments.length
-            @currentPage += 1
-            @trigger 'page', this
 
 
 class Paginator extends Backbone.View
@@ -70,23 +43,28 @@ class Paginator extends Backbone.View
         'click .next': 'nextPage'
         'click .disabled': 'disabled'
 
-    render: (view) ->
-        @el.innerHTML = @template(view.getPage())
+    initialize: ({@comments}) ->
+        @comments.bind 'page', @render, this
+
+    render: (page) ->
+        @el.innerHTML = @template(page)
 
     disabled: (e) ->
         e.preventDefault()
 
     prevPage: (e) ->
         e.preventDefault()
-        @trigger 'prev'
+        @trigger('prev')
+        @comments.prevPage()
 
     nextPage: (e) ->
         e.preventDefault()
-        @trigger 'next'
+        @trigger('next')
+        @comments.nextPage()
 
 
 class CommentListView extends Backbone.View
-    template: require 'templates/comment-wrapper.eco'
+    template: require 'templates/comment-list.eco'
 
     initialize: ({@comments, @withHeader})->
         @comments.bind 'reset', @render, this
@@ -97,17 +75,14 @@ class CommentListView extends Backbone.View
         @el.innerHTML = @template
             withHeader: @withHeader
             comments: @comments
-            pageBy: CommentListView::pageBy
-        @paginator = new Paginator(el: @$('.pagination')[0])
+        @paginator = new Paginator
+            el: @$('.pagination')[0]
+            comments: @comments
         @inner = new CommentSliceView
             el: @$('ul.comments')[0]
             comments: @comments
 
-        @inner.bind 'page', @paginator.render, @paginator
-        @paginator.bind 'next', @inner.nextPage, @inner
-        @paginator.bind 'prev', @inner.prevPage, @inner
-
-        @inner.trigger 'page', @inner
+        @comments.trigger 'page', @comments.getPage()
 
         this
 

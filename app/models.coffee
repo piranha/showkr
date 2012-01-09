@@ -1,6 +1,6 @@
 _ = require 'underscore'
 Backbone = require 'backbone'
-{Model, formatDate} = require 'util'
+{Model, Collection, formatDate} = require 'util'
 {API} = require 'api'
 
 
@@ -28,7 +28,7 @@ class Comment extends Model
             "/buddyicons/#{@author()}.jpg"
 
 
-class Comments extends Backbone.Collection
+class Comments extends Collection
     model: Comment
 
     # method: either 'photoComments' or 'setComments'
@@ -61,7 +61,8 @@ class Photo extends Model
         if not @id
             console.log 'id undefined', @cid, @
             return
-        @comments(new Comments(null, {parent: this, method: 'photoComments'}))
+        @comments(new Comments(null,
+            {parent: this, method: 'photoComments', pageBy: 5}))
 
     # s  small square 75x75
     # t  thumbnail, 100 on longest side
