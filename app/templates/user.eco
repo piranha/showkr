@@ -1,5 +1,5 @@
 <% if @config.title: %>
-<h1>Sets of <%- @model.username() || @model.id %>
+<h1>Sets of <a href="http://www.flickr.com/photos/<%- @model.username() || @model.id %>/"><%- @model.username() || @model.id %></a>
   <a href="#" class="anchor embed">embed</a>
 </h1>
 <% end %>
