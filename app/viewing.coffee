@@ -126,6 +126,8 @@ class SetView extends View
         'k': 'prevPhoto'
         'down': 'nextPhoto'
         'up': 'prevPhoto'
+        'space': 'nextPhoto'
+        'shift+space': 'prevPhoto'
 
     initialize: ({@config}) ->
         @model = Set.getOrCreate(@id)
