@@ -98,7 +98,7 @@ class Photo extends Model
         @collection.set.id
 
 
-class PhotoList extends Backbone.Collection
+class PhotoList extends Collection
     model: Photo
 
     initialize: (models, {@set}) ->
@@ -143,12 +143,12 @@ class Set extends Model
     initialize: ->
         @photolist(new PhotoList(null, {set: this}))
         @comments(new Comments(null, {parent: this, method: 'setComments'}))
+        @bind 'change', (-> @photolist().fetch()), this
 
     sync: (method, coll, {success, error}) ->
         photos = @photolist()
         API.setInfo @id, (data) ->
             (if data.stat == 'ok' then success else error)(data)
-            photos.fetch()
 
     parse: ({photoset}) ->
         return photoset

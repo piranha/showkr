@@ -2,6 +2,7 @@
 
 TEMPLATES=$(patsubst app/%,%.js,$(wildcard app/templates/*.eco))
 SOURCE=$(patsubst %,%.js,util api models viewing browsing showkr)
+STATIC=$(patsubst static/%,%,$(wildcard static/*))
 CSS=style.css
 DEPS=ender.js
 VENDOR=$(wildcard vendor/*.js)
@@ -24,7 +25,7 @@ namespacer = [ -d ~/.virtualenvs/default ] && \
 #
 
 all: $(addprefix build/,\
-	$(TEMPLATES) $(SOURCE) $(CSS) $(VENDOR) index.html favicon.ico)
+	$(TEMPLATES) $(SOURCE) $(CSS) $(VENDOR) $(STATIC) index.html)
 
 build/%.css: %.less
 	@mkdir -p $(@D)
@@ -52,7 +53,7 @@ build/$(DEPS):
 	ender build -o $@ qwery bean reqwest backbone keymaster
 	sed -i '' 's:root.Zepto;$\:root.ender;:' $@
 
-%/favicon.ico: favicon.ico
+build/%: static/%
 	@mkdir -p $(@D)
 	cp $< $@
 
@@ -64,7 +65,7 @@ node_modules/eco:
 #
 
 prod: all $(addprefix prod/,\
-	app.js index.html style.css namespaced.css embed.js favicon.ico)
+	$(STATIC) app.js index.html style.css namespaced.css embed.js)
 
 deploy: prod
 	rsync -Pr prod/ $(SERVER)
@@ -89,6 +90,10 @@ prod/app.js: $(addprefix build/,\
 prod/index.html: index.html prod/app.js
 	@mkdir -p $(@D)
 	DEPS="app.js?$(shell md5 -q prod/app.js)" awk -f build.awk $< > $@
+
+prod/%: static/%
+	@mkdir -p $(@D)
+	cp $< $@
 
 
 # Utility

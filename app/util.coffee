@@ -143,5 +143,10 @@ class exports.View extends Backbone.View
         $(input).bind 'blur', ->
             parent.replaceChild(old, input)
 
+    loadStart: ->
+        @el.classList.add('load')
+
+    loadEnd: =>
+        @el.classList.remove('load')
 
 provide 'util', exports

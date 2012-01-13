@@ -147,6 +147,8 @@ class SetView extends View
         for key, fn of @keys
             $.key key, _.bind(@[fn], @)
 
+        @loadStart()
+        @model.photolist().bind 'reset', @loadEnd
         @model.fetch()
 
     embed: ->
