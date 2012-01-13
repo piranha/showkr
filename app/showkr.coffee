@@ -70,7 +70,6 @@ class @Showkr extends Backbone.Router
         @config = _.extend({}, @defaults, config)
         @views = {}
         @el = $(el)[0]
-        $.key 'h', _.bind(@showHelp, @)
         history = Backbone.history
 
         init = =>
@@ -124,9 +123,6 @@ class @Showkr extends Backbone.Router
         @getView('about', -> new About())
 
     # ## Helpers
-
-    showHelp: ->
-        $('#help').overlay().open()
 
     addToHistory: (set) ->
         history = JSON.parse(localStorage.showkr or '[]')
