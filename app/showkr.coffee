@@ -1,3 +1,7 @@
+# Showkr - minimalistic photo viewer
+# (c) 2011-2012 Alexander Solovyov
+# under terms of ISC License
+
 $ = ender
 _ = require 'underscore'
 Backbone = require 'backbone'
@@ -107,7 +111,7 @@ class @Showkr extends Backbone.Router
     # ## Views
 
     index: ->
-        [form, isNew] = @getView('form', => new Form(app: this))
+        @getView('form', => new Form(app: this))
 
     set: (set, photo) ->
         [view, isNew] = @getView("set-#{set}", =>
@@ -116,8 +120,7 @@ class @Showkr extends Backbone.Router
             view.scrollTo(photo)
 
     user: (user) ->
-        [view, isNew] = @getView("user-#{user}", =>
-            new UserView(user: user, config: @config))
+        @getView("user-#{user}", => new UserView(user: user, config: @config))
 
     about: ->
         @getView('about', -> new About())
