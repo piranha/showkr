@@ -1,12 +1,12 @@
-.PHONY: deploy watch
+.PHONY: all deploy watch
 
-TEMPLATES=$(patsubst app/%,%.js,$(wildcard app/templates/*.eco))
-SOURCE=$(patsubst %,%.js,util api models viewing browsing showkr)
-CSS=style.css
-DEPS=ender.js
-VENDOR=$(wildcard vendor/*.js)
+TEMPLATES = $(patsubst app/%,%.js,$(wildcard app/templates/*.eco))
+SOURCE = $(patsubst %,%.js,util api models viewing browsing showkr)
+CSS = style.css
+DEPS = ender.js
+VENDOR = $(wildcard vendor/*.js)
 
-SERVER=sapientisat.org:web/showkr/
+SERVER = sapientisat.org:web/showkr/
 
 #
 # Macros
