@@ -1,9 +1,11 @@
 <% if @length > @pageBy: %>
-<ul>
-  <li class="prev <% if not @hasPrev: %>disabled<% end %>"><a href="#">&larr;</a></li>
-  <li class="disabled">
-    <a href="#"><%- @start + 1 %>  - <%- @end %> of <%- @length %></a>
-  </li>
-  <li class="next <% if not @hasNext: %>disabled<% end %>"><a href="#">&rarr;</a></li>
-</ul>
+<li class="previous">
+  <a href="#" class="<% if not @hasPrev: %>disabled<% end %>">&larr;</a>
+</li>
+<li>
+  <a href="#" class="disabled noborder"><%- @start + 1 %>  - <%- @end %> of <%- @length %></a>
+</li>
+<li class="next">
+  <a href="#" class="<% if not @hasNext: %>disabled<% end %>">&rarr;</a>
+</li>
 <% end %>

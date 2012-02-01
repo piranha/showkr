@@ -5,5 +5,5 @@
 <ul class="comments">
 </ul>
 
-<div class="pagination">
-</div>
+<ul class="pager">
+</ul>

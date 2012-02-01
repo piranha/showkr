@@ -1,12 +1,11 @@
 /*!
- * Bootstrap @VERSION
+ * Bootstrap v2.0.0
  *
- * Copyright 2011 Twitter, Inc
+ * Copyright 2012 Twitter, Inc
  * Licensed under the Apache License v2.0
  * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Designed and built with all the love in the world @twitter by @mdo and @fat.
- * Date: @DATE
  */
 
 // CSS Reset
@@ -18,9 +17,21 @@
 
 // Grid system and page structure
 @import "scaffolding.less";
+@import "grid.less";
+@import "layouts.less";
 
-// Styled patterns and elements
+// Base CSS
 @import "type.less";
 @import "forms.less";
-@import "tables.less";
-@import "patterns.less";
+
+// Components: common
+@import "sprites.less";
+
+// Components: Buttons & Alerts
+@import "buttons.less";
+
+// Components: Nav
+@import "pager.less";
+
+// Utility classes
+@import "utilities.less"; // Has to be last to override when necessary

@@ -92,4 +92,4 @@ class StatHat
             type: 'jsonp'
 
 
-provide 'api', {API, StatHat}
+provide 'api', {API, StatHat, addMethods}

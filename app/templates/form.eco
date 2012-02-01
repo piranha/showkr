@@ -1,14 +1,20 @@
 <div class="row">
-  <fieldset class="span8">
+  <fieldset class="span6">
     <legend>Go directly to photoset</legend>
-    <div class="clearfix">
+
+    <div class="control-group">
       <label for="url-input">Photoset URL or id</label>
-      <div class="input">
-        <input type="text" id="url-input" name="url"
-               placeholder="URL or id of a photoset">
+      <div class="controls">
+        <div class="input-prepend">
+          <span class="add-on"><i class="icon-edit"></i></span>
+          <input type="text" id="url-input" name="url"
+                 placeholder="Photoset URL or id">
+        </div>
       </div>
     </div>
-    <div class="input">
+
+    <div class="control-group">
+      <div class="controls">
       <% if @history.length: %>
       Or select something from your history:
       <ul>
@@ -19,16 +25,20 @@
       <% else: %>
       Or watch an <a href="#72157627590185596">example</a>.
       <% end %>
+      </div>
     </div>
   </fieldset>
 
-  <fieldset class="span8">
+  <fieldset class="span6">
     <legend>Browse a user sets</legend>
-    <div class="clearfix">
-      <label for="user-input">User id or profile username</label>
-      <div class="input">
-        <input type="text" id="user-input" name="user"
-               placeholder="User id or profile username">
+    <div class="control-group">
+      <label for="user-input">User id or username</label>
+      <div class="controls">
+        <div class="input-prepend">
+          <span class="add-on"><i class="icon-user"></i></span>
+          <input type="text" id="user-input" name="user"
+                 placeholder="User id or username">
+        </div>
       </div>
     </div>
   </fieldset>

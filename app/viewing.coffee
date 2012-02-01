@@ -39,7 +39,7 @@ class Paginator extends Backbone.View
     template: require 'templates/paginator.eco'
 
     events:
-        'click .prev': 'prevPage'
+        'click .previous': 'prevPage'
         'click .next': 'nextPage'
         'click .disabled': 'disabled'
 
@@ -76,7 +76,7 @@ class CommentListView extends Backbone.View
             withHeader: @withHeader
             comments: @comments
         @paginator = new Paginator
-            el: @$('.pagination')[0]
+            el: @$('.pager')[0]
             comments: @comments
         @inner = new CommentSliceView
             el: @$('ul.comments')[0]

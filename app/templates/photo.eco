@@ -2,9 +2,9 @@
   <a class="anchor" href="#<%- @setId() %>/<%- @id %>">&para;</a>
 </h3>
 <div class="row">
-  <div class="span11">
+  <div class="span8">
     <a href="<%- @flickrUrl() %>"><img src="<%- @medium() %>"></a>
   </div>
-  <div class="span5 comments">
+  <div class="span4 comments">
   </div>
 </div>

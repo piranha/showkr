@@ -20,6 +20,7 @@ class About extends Backbone.View
 
 class Form extends Backbone.View
     tagName: 'form'
+    className: 'form-horizontal'
     template: require 'templates/form.eco'
 
     events:

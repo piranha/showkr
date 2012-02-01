@@ -1,7 +1,8 @@
 .PHONY: all deploy watch
 
-TEMPLATES = $(patsubst app/%,%.js,$(wildcard app/templates/*.eco))
-SOURCE = $(patsubst %,%.js,util api models viewing browsing showkr)
+TEMPLATES = $(patsubst app/%, %.js, $(wildcard app/templates/*.eco))
+SOURCE = $(patsubst %, %.js, util api models viewing browsing showkr)
+STATIC = $(patsubst static/%, %, $(wildcard static/*))
 CSS = style.css
 DEPS = ender.js
 VENDOR = $(wildcard vendor/*.js)
@@ -24,13 +25,13 @@ namespacer = [ -d ~/.virtualenvs/default ] && \
 #
 
 all: $(addprefix build/,\
-	$(TEMPLATES) $(SOURCE) $(CSS) $(VENDOR) index.html favicon.ico)
+	$(TEMPLATES) $(SOURCE) $(CSS) $(VENDOR) $(STATIC) index.html)
 
 build/%.css: %.less
 	@mkdir -p $(@D)
 	lessc $< $@
 
-build/%.js: app/%.coffee $(addprefix build/,$(DEPS))
+build/%.js: app/%.coffee
 	@mkdir -p $(@D)
 	coffee -pc $< > $@
 
@@ -47,17 +48,20 @@ build/index.html: index.html $(addprefix build/,\
 	@mkdir -p $(@D)
 	DEPS="$(DEPS) $(TEMPLATES) $(VENDOR) $(SOURCE)" awk -f build.awk $< > $@
 
-build/$(DEPS):
+build/ender.js:
 	@mkdir -p $(@D)
 	ender build -o $@ qwery bean reqwest backbone keymaster
 	sed -i '' 's:root.Zepto;$\:root.ender;:' $@
 
-%/favicon.ico: favicon.ico
-	@mkdir -p $(@D)
-	cp $< $@
+define static
+build/$(1): static/$(1)
+	cp $$< $$@
+endef
 
-node_modules/eco:
-	npm install eco
+$(foreach file,$(STATIC),$(eval $(call static,$(file))))
+
+node_modules/%:
+	npm install %
 
 #
 # Deployment
