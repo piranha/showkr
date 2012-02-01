@@ -44,6 +44,6 @@
   </fieldset>
 </div>
 
-<div class="actions">
-  <input type="submit" class="btn primary">
+<div class="form-actions">
+  <input type="submit" class="btn btn-primary">
 </div>

@@ -19,6 +19,10 @@ namespacer = [ -d ~/.virtualenvs/default ] && \
 	./css-namespacer.py $(1) > $(2) || \
 	./css-namespacer.py $(1) > $(2)
 
+define static
+$(1)/$(2): static/$(2)
+	cp $$< $$@
+endef
 
 #
 # Building
@@ -53,12 +57,7 @@ build/ender.js:
 	ender build -o $@ qwery bean reqwest backbone keymaster
 	sed -i '' 's:root.Zepto;$\:root.ender;:' $@
 
-define static
-build/$(1): static/$(1)
-	cp $$< $$@
-endef
-
-$(foreach file,$(STATIC),$(eval $(call static,$(file))))
+$(foreach file,$(STATIC),$(eval $(call static,build,$(file))))
 
 node_modules/%:
 	npm install %
@@ -68,7 +67,7 @@ node_modules/%:
 #
 
 prod: all $(addprefix prod/,\
-	app.js index.html style.css namespaced.css embed.js favicon.ico)
+	app.js index.html style.css namespaced.css embed.js $(STATIC))
 
 deploy: prod
 	rsync -Pr prod/ $(SERVER)
@@ -94,6 +93,7 @@ prod/index.html: index.html prod/app.js
 	@mkdir -p $(@D)
 	DEPS="app.js?$(shell md5 -q prod/app.js)" awk -f build.awk $< > $@
 
+$(foreach file,$(STATIC),$(eval $(call static,prod,$(file))))
 
 # Utility
 
