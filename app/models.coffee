@@ -147,11 +147,10 @@ class Set extends Model
     sync: (method, coll, {success, error}) ->
         photos = @photolist()
         API.setInfo @id, (data) ->
-            (if data.stat == 'ok' then success else error)(data)
+            # don't put this in parse, since SetList can't initiate anything
+            # then
+            (if data.stat == 'ok' then success else error)(data.photoset)
             photos.fetch()
-
-    parse: ({photoset}) ->
-        return photoset
 
     date: ->
         d = new Date(parseInt(@date_create()) * 1000)
