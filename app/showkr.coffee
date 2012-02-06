@@ -81,9 +81,9 @@ class @Showkr extends Backbone.Router
             if @config.set
                 @set(@config.set)
             else if @config.user
+                history.start(silent: true)
                 if not location.hash or not history.loadUrl(location.hash)
-                    @navigate("user/#{@config.user}", false)
-                history.start()
+                    @navigate("user/#{@config.user}", true)
             else
                 history.start()
 
