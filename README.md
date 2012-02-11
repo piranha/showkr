@@ -19,7 +19,7 @@ sourced to serve as a base for my article about writing client-side
 applications:
 
  - [in russian](http://solovyov.net/blog/2012/01/13/showkr/)
- - english translation is pending
+ - [in english](http://solovyov.net/en/2012/02/11/showkr/)
 
 And if you want to contribute, you're more than welcome.
 
