@@ -51,6 +51,7 @@ class Photo extends Model
     @field 'farm'
     @field 'server'
     @field 'title'
+    @field 'description'
     @field 'number'
     @field 'originalsecret'
     @field 'originalformat'
@@ -107,7 +108,7 @@ class PhotoList extends Backbone.Collection
         if method != 'read'
             return alert 'wtf'
 
-        API.photoList @set.id, 'original_format', (data) ->
+        API.photoList @set.id, 'original_format,description', (data) ->
             (if data.stat == 'ok' then success else error)(data)
 
     parse: ({photoset}) ->

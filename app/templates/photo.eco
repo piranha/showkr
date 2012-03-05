@@ -1,6 +1,7 @@
 <h3><%- @number() %>. <%- @title() %>
   <a class="anchor" href="#<%- @setId() %>/<%- @id %>">&para;</a>
 </h3>
+<small rel="description"><%- @description() %></small>
 <div class="row">
   <div class="span8">
     <a href="<%- @flickrUrl() %>"><img src="<%- @medium() %>"></a>
