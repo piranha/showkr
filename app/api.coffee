@@ -10,6 +10,7 @@ API = (options, callback) ->
     $.ajax
         url: BASE + '?' + query + '&jsoncallback=?'
         type: 'jsonp'
+        jsonpCallback: 'jsoncallback'
         success: callback
 
 # adding methods to an API client

@@ -54,8 +54,7 @@ build/index.html: index.html $(addprefix build/,\
 
 build/ender.js:
 	@mkdir -p $(@D)
-	ender build -o $@ qwery bean reqwest backbone keymaster
-	sed -i '' 's:root.Zepto;$\:root.ender;:' $@
+	ender build -o $@ qwery bean reqwest@latest backbone keymaster@latest
 
 $(foreach file,$(STATIC),$(eval $(call static,build,$(file))))
 
