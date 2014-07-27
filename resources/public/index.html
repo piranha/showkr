@@ -1,0 +1,51 @@
+<!doctype html>
+<html id="_showkr">
+<head>
+  <meta charset="utf-8">
+  <link rel="stylesheet" href="style.css">
+  <link rel="shortcut icon" href="favicon.ico">
+  <title>Showkr</title>
+  <!-- js.deps -->
+</head>
+<body class="container">
+  <header>
+    <h1><a href="#">Showkr</a></h1>
+  </header>
+
+  <div class="row">
+    <div id="main" class="span12">
+    </div>
+  </div>
+
+  <footer>
+    <p class="pull-right">
+      <a href="#about">About</a>
+    </p>
+    <p>
+      © 2012 <a href="http://solovyov.net/">Alexander Solovyov</a>
+    </p>
+  </footer>
+
+  <script src="http://fb.me/react-0.11.1.js"></script>
+  <script src="js/out/goog/base.js" type="text/javascript"></script>
+  <script src="js/showkr.js" type="text/javascript"></script>
+  <script type="text/javascript">
+    goog.require('showkr.figwheel');
+    goog.require('showkr.main');
+  </script>
+  <script type="text/javascript">
+    window._showkr = showkr.main.main('main');
+  </script>
+
+  <script>
+  var _gaq = [['_setAccount', 'UA-317760-10'], ['_trackPageview']];
+  (function(d, t) {
+      var g = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      g.src = 'http://www.google-analytics.com/ga.js';
+      g.async = true;
+      s.parentNode.insertBefore(g, s);
+  }(document, 'script'));
+  </script>
+</body>
+</html>
