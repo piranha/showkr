@@ -21,15 +21,26 @@
           (d/input (assoc input :id id)))))))
 
 (q/defcomponent Form
-  []
-  (d/div {:className "row"}
+  [form setter]
+  (d/form {:className "form-horizontal"
+           :onSubmit (fn [e]
+                       (.preventDefault e)
+                       (when (or (:set form) (:user form))
+                         (set! js/window.location
+                           (if (:set form)
+                             (str "#" (:set form))
+                             (str "#user/" (:user form))))
+                         (setter {})))}
     (d/fieldset {:className "span6"}
       (d/legend nil "Go directly to photoset")
 
       (FormGroup {:label "Photoset URL or id"
                   :icon "edit"
                   :input {:type "text"
-                          :placeholder "Photoset URL or id"}})
+                          :placeholder "Photoset URL or id"
+                          :tabIndex 1
+                          :value (:set form "")
+                          :onChange #(setter :set (.. % -target -value))}})
       
       (d/div {:className "control-group"}
         (if false 
@@ -51,7 +62,12 @@
       (FormGroup {:label "User id or username"
                   :icon "user"
                   :input {:type "text"
-                          :placeholder "User id or username"}}))
+                          :placeholder "User id or username"
+                          :tabIndex 2
+                          :value (:user form "")
+                          :onChange #(setter :user (.. % -target -value))}}))
 
     (d/div {:className "form-actions"}
-      (d/input {:type "submit" :className "btn btn-primary"}))))
+      (d/input {:type "submit"
+                :className "btn btn-primary"
+                :tabIndex 3}))))

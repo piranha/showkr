@@ -8,7 +8,9 @@
 (defonce world
   (atom {:target nil
          :path nil
-         :sets {}}))
+         :form {}
+         :sets {}
+         :users {}}))
 
 (defn- flickr-error [payload]
   (js/console.error "Error fetching data with parameters:" payload))
@@ -21,7 +23,6 @@
 
 (defn fetch-set [id]
   (when-not (get-in @world [:sets id])
-    (js/console.log "fetching" id)
     (swap! world assoc-in [:sets id]
       {:state :waiting})
     (call-flickr {:method "flickr.photosets.getPhotos"
@@ -43,3 +44,29 @@
           (swap! world assoc-in [:sets set-id :data :photo idx :comments]
             {:state :fetched
              :data (js->clj (.-comments data) :keywordize-keys true)}))))))
+
+
+(defn fetch-user-sets [username]
+  (let [user (get-in @world [:users username :data])]
+    (when (and user (not (:sets user)))
+      (swap! world assoc-in [:users username :data :sets]
+        {:state :waiting})
+      (call-flickr {:method "flickr.photosets.getList"
+                    :user_id (:id user)}
+        (fn [data]
+          (swap! world assoc-in [:users username :data :sets]
+            {:state :fetched
+             :data (js->clj (.-photosets data) :keywordize-keys true)}))))))
+
+(defn fetch-user [username]
+  (when-not (get-in @world [:users username])
+    (swap! world assoc-in [:users username]
+      {:state :waiting})
+    (call-flickr {:method "flickr.urls.lookupUser"
+                  :url (str "https://flickr.com/photos/" username)}
+      (fn [data]
+        (swap! world assoc-in [:users username]
+          {:state :fetched
+           :data (js->clj (.-user data) :keywordize-keys true)})
+        (fetch-user-sets username)
+        #_ (fetch-user-info username)))))
