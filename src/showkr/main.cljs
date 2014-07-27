@@ -33,13 +33,21 @@
         ([v] (swap! data/world assoc :form v))
         ([k v] (swap! data/world assoc-in [:form k] v))))))
 
+(def ^:private render-queued false)
 (defn render []
   (js/console.log "rendering" (clj->js @data/world))
+  (set! render-queued false)
   (q/render (Root @data/world)
     (.getElementById js/document (:target @data/world))))
 
 (defn ^:export main [id]
-  (add-watch data/world ::main render)
+  (add-watch data/world ::main
+    (fn []
+      (when-not render-queued
+        (set! render-queued true)
+        (if (exists? js/requestAnimationFrame)
+          (js/requestAnimationFrame render)
+          (js/setTimeout render 16)))))
   (swap! data/world assoc
     :target id
     :path (get-route))

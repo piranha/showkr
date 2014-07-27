@@ -27,18 +27,33 @@
                        (.preventDefault e)
                        (when (or (:set form) (:user form))
                          (set! js/window.location
-                           (if (:set form)
+                           (cond
+                             (re-matches #"^\d+$" (:set form))
                              (str "#" (:set form))
-                             (str "#user/" (:user form))))
+
+                             (re-matches #"/sets/(\d+)/" (:set form))
+                             (str "#"
+                               (first (re-matches #"/sets/(\d+)/" (:set form))))
+
+                             (:user form)
+                             (str "#user/" (:user form))
+
+                             (:set form)
+                             (do
+                               (js/alert "Something wrong with your input")
+                               "#")
+
+                             :else
+                             "#"))
                          (setter {})))}
     (d/div {:className "row"}
       (d/fieldset {:className "span6"}
-        (d/legend nil "Go directly to photoset")
+        (d/legend nil "Go directly to album")
 
-        (FormGroup {:label "Photoset URL or id"
+        (FormGroup {:label "Album URL or id"
                     :icon "edit"
                     :input {:type "text"
-                            :placeholder "Photoset URL or id"
+                            :placeholder "Album (set) URL or id"
                             :tabIndex 1
                             :value (:set form "")
                             :onChange #(setter :set (.. % -target -value))}})
@@ -58,7 +73,7 @@
               (d/a {:href "#72157627590185596"} "example")))))
 
       (d/fieldset {:className "span6"}
-        (d/legend nil "Browse user photos")
+        (d/legend nil "Browse user albums")
 
         (FormGroup {:label "User id or username"
                     :icon "user"

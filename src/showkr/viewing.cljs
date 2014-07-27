@@ -1,10 +1,15 @@
 (ns showkr.viewing
-  (:require [quiescent :as q :include-macros true]
+  (:require [goog.style :as style]
+
+            [quiescent :as q :include-macros true]
             [quiescent.dom :as d]
 
             [showkr.data :as data]
             [showkr.ui :as ui]))
 
+
+(defn scroll-to [el]
+  (js/scroll 0 (style/getPageOffsetTop el)))
 
 ;; s  small square 75x75
 ;; t  thumbnail, 100 on longest side
@@ -27,6 +32,7 @@
     "http://www.flickr.com/images/buddyicon.jpg"
     (str "http://farm" iconfarm ".static.flickr.com/" iconserver
          "/buddyicons/" author ".jpg")))
+
 
 (q/defcomponent Comment
   [{:keys [author authorname permalink datecreate _content] :as comment}]
@@ -56,20 +62,24 @@
       (d/ul {:className "pager"}))))
 
 (q/defcomponent Photo
-  [{:keys [idx id set-id title description] :as photo}]
-  (q/wrapper
-    (d/div nil
-      (d/h3 nil (str (inc idx) ". " title " ")
-        #_ (d/a {:className "anchor" :href (str "#" set-id "/" id)} "#"))
+  [{:keys [idx id scroll-id set-id title description] :as photo}]
+  (let [upd (fn [node]
+              (data/fetch-comments set-id idx)
+              (if (= id scroll-id)
+                (scroll-to node)))]
+    (q/wrapper
+      (d/div nil
+        (d/h3 nil (str (inc idx) ". " title " ")
+          (d/a {:className "anchor" :href (str "#" set-id "/" id)} "#"))
 
-      (d/small {:rel "description"} (:_content description))
-      (d/div {:className "row"}
-        (d/div {:className "span8"}
-          (d/a {:href (flickr-url photo)}
-            (d/img {:src (photo-url photo :medium)})))
-        (CommentList (:comments photo))))
-    :onMount (fn []
-               (data/fetch-comments set-id idx))))
+        (d/small {:rel "description"} (:_content description))
+        (d/div {:className "row"}
+          (d/div {:className "span8"}
+            (d/a {:href (flickr-url photo)}
+              (d/img {:src (photo-url photo :medium)})))
+          (CommentList (:comments photo))))
+      :onMount upd
+      :onUpdate upd)))
 
 (q/defcomponent Set
   [{:keys [id set scroll-id]}]
@@ -91,10 +101,9 @@
         (map-indexed
           #(Photo (assoc %2 :idx %1
                             :set-id id
+                            :scroll-id scroll-id
                             :owner (-> set :data :owner)))
           (-> set :data :photo))))
 
-    :onMount (fn [node]
-               (data/fetch-set id))
-    :onUpdate (fn [node]
-                (data/fetch-set id))))
+    :onMount (fn [node] (data/fetch-set id))
+    :onUpdate (fn [node] (data/fetch-set id))))
