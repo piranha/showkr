@@ -5,3 +5,8 @@ fig:
 
 min:
 	lein cljsbuild once min
+
+css: resources/public/style.css
+
+resources/public/style.css: styles/style.less styles/bootstrap/*.less
+	lessc $< > $@

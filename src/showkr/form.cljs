@@ -31,41 +31,42 @@
                              (str "#" (:set form))
                              (str "#user/" (:user form))))
                          (setter {})))}
-    (d/fieldset {:className "span6"}
-      (d/legend nil "Go directly to photoset")
+    (d/div {:className "row"}
+      (d/fieldset {:className "span6"}
+        (d/legend nil "Go directly to photoset")
 
-      (FormGroup {:label "Photoset URL or id"
-                  :icon "edit"
-                  :input {:type "text"
-                          :placeholder "Photoset URL or id"
-                          :tabIndex 1
-                          :value (:set form "")
-                          :onChange #(setter :set (.. % -target -value))}})
-      
-      (d/div {:className "control-group"}
-        (if false 
+        (FormGroup {:label "Photoset URL or id"
+                    :icon "edit"
+                    :input {:type "text"
+                            :placeholder "Photoset URL or id"
+                            :tabIndex 1
+                            :value (:set form "")
+                            :onChange #(setter :set (.. % -target -value))}})
 
-          (d/div {:className "controls"}
-            "Or select something from your history: "
-            (apply d/ul nil
-              (for [[key name] []]
-                (d/li nil
-                  (d/a {:href (str "#" key)} name)))))
+        (d/div {:className "control-group"}
+          (if false
 
-          (d/div {:className "controls"}
-            "Or watch an "
-            (d/a {:href "#72157627590185596"} "example")))))
+            (d/div {:className "controls"}
+              "Or select something from your history: "
+              (apply d/ul nil
+                (for [[key name] []]
+                  (d/li nil
+                    (d/a {:href (str "#" key)} name)))))
 
-    (d/fieldset {:className "span6"}
-      (d/legend nil "Browse user photos")
+            (d/div {:className "controls"}
+              "Or watch an "
+              (d/a {:href "#72157627590185596"} "example")))))
 
-      (FormGroup {:label "User id or username"
-                  :icon "user"
-                  :input {:type "text"
-                          :placeholder "User id or username"
-                          :tabIndex 2
-                          :value (:user form "")
-                          :onChange #(setter :user (.. % -target -value))}}))
+      (d/fieldset {:className "span6"}
+        (d/legend nil "Browse user photos")
+
+        (FormGroup {:label "User id or username"
+                    :icon "user"
+                    :input {:type "text"
+                            :placeholder "User id or username"
+                            :tabIndex 2
+                            :value (:user form "")
+                            :onChange #(setter :user (.. % -target -value))}})))
 
     (d/div {:className "form-actions"}
       (d/input {:type "submit"
