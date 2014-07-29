@@ -5,7 +5,8 @@
             [quiescent.dom :as d]
 
             [showkr.data :as data]
-            [showkr.ui :as ui]))
+            [showkr.ui :as ui]
+            [showkr.keymount :as key]))
 
 
 (defn scroll-to [el]
@@ -47,7 +48,7 @@
 
 (q/defcomponent CommentList
   [comments]
-  (condp = (:state comments)
+  (condp = (:state (meta comments))
     nil
     (d/div {:className "span4 comments"})
 
@@ -57,7 +58,7 @@
     :fetched
     (d/div {:className "span4 comments"}
       (apply d/ul {:className "comments"}
-        (for [comment (-> comments :data :comment)]
+        (for [comment (:comment comments)]
           (Comment comment)))
       (d/ul {:className "pager"}))))
 
@@ -81,10 +82,26 @@
       :onMount upd
       :onUpdate upd)))
 
+(defn bind-controls! [set current]
+  (key/bind! "j" ::next #(data/watch-next set current))
+  (key/bind! "down" ::next #(data/watch-next set current))
+  (key/bind! "space" ::next #(data/watch-next set current))
+  (key/bind! "k" ::prev #(data/watch-prev set current))
+  (key/bind! "up" ::prev #(data/watch-prev set current))
+  (key/bind! "shift-space" ::prev #(data/watch-prev set current)))
+
+(defn unbind-controls! []
+  (key/unbind! "j" ::next)
+  (key/unbind! "down" ::next)
+  (key/unbind! "space" ::next)
+  (key/unbind! "k" ::prev)
+  (key/unbind! "up" ::prev)
+  (key/unbind! "shift-space" ::prev))
+
 (q/defcomponent Set
   [{:keys [id set scroll-id]}]
   (q/wrapper
-    (condp = (:state set)
+    (condp = (:state (meta set))
       nil
       (d/div nil id)
 
@@ -93,17 +110,23 @@
 
       :fetched
       (apply d/div nil
-        (if (-> set :data :title)
+        (if (:title set)
           (d/h1 nil
-            (d/span {:rel "title"} (-> set :data :title))))
-        (d/small {:rel "description"} (-> set :data :description))
+            (d/span {:rel "title"} (:title set))))
+        (d/small {:rel "description"} (:description set))
 
         (map-indexed
           #(Photo (assoc %2 :idx %1
-                            :set-id id
-                            :scroll-id scroll-id
-                            :owner (-> set :data :owner)))
-          (-> set :data :photo))))
+                         :set-id id
+                         :scroll-id scroll-id
+                         :owner (:owner set)))
+          (:photo set))))
 
-    :onMount (fn [node] (data/fetch-set id))
-    :onUpdate (fn [node] (data/fetch-set id))))
+    :onMount (fn [node]
+               (data/fetch-set id)
+               (bind-controls! set scroll-id))
+    :onUpdate (fn [node]
+                (data/fetch-set id)
+                (bind-controls! set scroll-id))
+    :onWillUnmount (fn []
+                     (unbind-controls!))))

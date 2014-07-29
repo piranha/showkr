@@ -7,5 +7,6 @@ pom.xml
 .lein-deps-sum
 .lein-repl-history
 .lein-plugins/
+.nrepl-port
 /resources/public/js/
 /resources/public/style.css

@@ -3,6 +3,7 @@
             [showkr.data :as data]
             [showkr.main :refer [render]]))
 
-(fw/watch-and-reload :jsload-callback #(swap! data/world identity))
+(fw/watch-and-reload :jsload-callback (fn [] (swap! data/world
+                                               #(assoc % :fake-val (not (:fake-val %))))))
 
 

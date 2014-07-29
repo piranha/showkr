@@ -30,7 +30,7 @@
       (d/h1 nil
         "Sets of "
         (d/a {:href (str "https://flickr.com/photos/" username)} username))
-      (when (= :fetched (-> user :data :sets :state))
-        (for [set (-> user :data :sets :data :photoset)]
+      (when (= :fetched (-> user :sets meta :state))
+        (for [set (-> user :sets :photoset)]
           (Set set))))
     :onMount #(data/fetch-user username)))

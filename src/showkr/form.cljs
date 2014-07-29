@@ -28,10 +28,10 @@
                        (when (or (:set form) (:user form))
                          (set! js/window.location
                            (cond
-                             (re-matches #"^\d+$" (:set form))
+                             (re-matches #"^\d+$" (:set form ""))
                              (str "#" (:set form))
 
-                             (re-matches #"/sets/(\d+)/" (:set form))
+                             (re-matches #"/sets/(\d+)/" (:set form ""))
                              (str "#"
                                (first (re-matches #"/sets/(\d+)/" (:set form))))
 

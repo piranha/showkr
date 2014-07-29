@@ -19,12 +19,14 @@
     (let [username (.slice path 5)]
       (User {:username username :user (get users username)}))
 
-    (re-matches #"^\d+$" path)
-    (Set {:id path :set (get sets path)})
+    (re-matches #"^\d+/?$" path)
+    (let [[set-id] (.split path "/")]
+      (Set {:id path :set (get sets set-id)}))
 
     (re-matches #"^\d+/\d+$" path)
     (let [[set-id scroll-id] (.split path "/")]
-      (Set {:id set-id :set (get sets set-id)
+      (Set {:id set-id
+            :set (get sets set-id)
             :scroll-id scroll-id}))
 
     :else
