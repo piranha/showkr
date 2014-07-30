@@ -9,6 +9,7 @@
                  [org.clojure/clojurescript "0.0-2268"]
                  [com.facebook/react "0.11.1"]
                  [quiescent "0.1.4"]
+                 [keybind "0.1.0"]
                  [figwheel "0.1.3-SNAPSHOT"]]
 
   :source-paths ["src"]

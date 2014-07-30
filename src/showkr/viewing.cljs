@@ -3,10 +3,10 @@
 
             [quiescent :as q :include-macros true]
             [quiescent.dom :as d]
+            [keybind :as key]
 
             [showkr.data :as data]
-            [showkr.ui :as ui]
-            [showkr.keymount :as key]))
+            [showkr.ui :as ui]))
 
 
 (defn scroll-to [el]
