@@ -43,8 +43,9 @@
 
     (d/div nil
       (d/a {:href (str "http://flickr.com/photos/" author)} authorname)
-      (d/a {:href permalink :className "anchor"} (ui/date datecreate)))
-    _content))
+      (d/a {:href permalink :className "anchor"} (ui/date datecreate))
+      (d/div {:className "content"
+              :dangerouslySetInnerHTML (js-obj "__html" _content)}))))
 
 (q/defcomponent CommentList
   [comments]

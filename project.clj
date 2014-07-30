@@ -28,4 +28,8 @@
                          :pretty-print false
                          :preamble ["react/react.min.js"]
                          :externs ["react/externs/react.js"]}}]}
-  )
+
+  :figwheel {
+    :port 8888
+    :css-dirs ["resources/public"]
+  })
