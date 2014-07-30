@@ -33,7 +33,7 @@
                   :extras "original_format,description,path_alias"}
       (fn [data]
         (swap! world assoc-in [:sets id]
-          (with-meta (js->clj (.-photoset data) :keywordize-keys true)
+          (with-meta (js->clj (aget data "photoset") :keywordize-keys true)
             {:state :fetched}))))))
 
 (defn fetch-comments [set-id idx]
@@ -45,7 +45,7 @@
                     :photo_id (:id photo)}
         (fn [data]
           (swap! world assoc-in [:sets set-id :photo idx :comments]
-            (with-meta (js->clj (.-comments data) :keywordize-keys true)
+            (with-meta (js->clj (aget data "comments") :keywordize-keys true)
               {:state :fetched})))))))
 
 (defn fetch-user-sets [username]
@@ -57,7 +57,7 @@
                     :user_id (:id user)}
         (fn [data]
           (swap! world assoc-in [:users username :sets]
-            (with-meta (js->clj (.-photosets data) :keywordize-keys true)
+            (with-meta (js->clj (aget data "photosets") :keywordize-keys true)
               {:state :fetched})))))))
 
 (defn fetch-user [username]
@@ -68,7 +68,7 @@
                   :url (str "https://flickr.com/photos/" username)}
       (fn [data]
         (swap! world assoc-in [:users username]
-          (with-meta (js->clj (.-user data) :keywordize-keys true)
+          (with-meta (js->clj (aget data "user") :keywordize-keys true)
             {:state :fetched}))
         (fetch-user-sets username)
         #_ (fetch-user-info username)))))
