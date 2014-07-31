@@ -31,7 +31,7 @@ def main(mode, fn):
 
 
 if __name__ == '__main__':
-    if len(sys.argv) < 2:
+    if len(sys.argv) < 3:
         print ('pass mode (either "namespace" or "compress") and '
                'filename as parameter')
     else:

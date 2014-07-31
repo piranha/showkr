@@ -24,12 +24,13 @@
         (d/img {:src (photo-url (assoc set :id (:primary set)) :medium)})))))
 
 (q/defcomponent User
-  [{:keys [username user]}]
+  [{:keys [username user hide-title]}]
   (q/wrapper
     (apply d/div nil
-      (d/h1 nil
-        "Sets of "
-        (d/a {:href (str "https://flickr.com/photos/" username)} username))
+      (when-not hide-title
+        (d/h1 nil
+          "Sets of "
+          (d/a {:href (str "https://flickr.com/photos/" username)} username)))
       (when (= :fetched (-> user :sets meta :state))
         (for [set (-> user :sets :photoset)]
           (Set set))))
