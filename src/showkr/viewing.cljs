@@ -103,12 +103,6 @@
   [{:keys [id set scroll-id]}]
   (q/wrapper
     (condp = (:state (meta set))
-      nil
-      (d/div nil id)
-
-      :waiting
-      (d/div nil id)
-
       :fetched
       (apply d/div nil
         (if (:title set)
@@ -121,7 +115,16 @@
                          :set-id id
                          :scroll-id scroll-id
                          :owner (:owner set)))
-          (:photo set))))
+          (:photo set)))
+
+      :waiting
+      (ui/spinner)
+
+      (d/div {:className "alert alert-error"}
+        "It seems that set "
+        (d/b nil id)
+        " does not exist. Go to "
+        (d/a {:href "#"} "index page.")))
 
     :onMount (fn [node]
                (data/fetch-set id)

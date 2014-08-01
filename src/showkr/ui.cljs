@@ -12,3 +12,6 @@
   (let [d (js/Date. (* (js/parseInt date 10) 1000))]
     (d/time {:dateTime (.toISOString d)}
       (str (.getDate d) " " (get MONTHS (.getMonth d)) " " (.getFullYear d)))))
+
+(defn spinner []
+  (d/img {:src "spinner.gif"}))

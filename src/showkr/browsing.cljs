@@ -26,16 +26,22 @@
 (q/defcomponent User
   [{:keys [username user hide-title]}]
   (q/wrapper
-    (apply d/div nil
-      (when-not hide-title
-        (d/h1 nil
-          "Sets of "
-          (d/a {:href (str "https://flickr.com/photos/" username)} username)))
-      (condp = (-> user :sets meta :state)
-        :fetched
+    (condp = (-> user :sets meta :state)
+      :fetched
+      (apply d/div nil
+        (when-not hide-title
+          (d/h1 nil
+            "Sets of "
+            (d/a {:href (str "https://flickr.com/photos/" username)} username)))
         (for [set (-> user :sets :photoset)]
-          (Set set))
+          (Set set)))
 
-        [(d/div nil
-           "Seems user does not exist")]))
+      :waiting
+      (ui/spinner)
+
+      (d/div {:className "alert alert-error"}
+        "It seems that user "
+        (d/b nil username)
+        " does not exist. Go to "
+        (d/a {:href "#"} "index page.")))
     :onMount #(data/fetch-user username)))
