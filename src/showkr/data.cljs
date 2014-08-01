@@ -5,6 +5,8 @@
 (def OPTS {:api_key "1606ff0ad63a3b5efeaa89443fe80704"
            :format "json"})
 
+(def ^:dynamic *old-threshold* (* 1000 60 60 2)) ;; 2 hours
+
 (defonce world
   (atom {:opts {:target nil
                 :path nil}
@@ -19,17 +21,33 @@
   (let [q (Jsonp. URL "jsoncallback")]
     (.send q (clj->js (merge OPTS payload)) callback flickr-error)))
 
+(defn old? [data]
+  (> (- (.getTime (js/Date.))
+       (or (-> data meta :date) 0))
+    *old-threshold*))
+
 (defn flickr-fetch [path attr payload & [cb]]
-  (when-not (get-in @world path)
-    (swap! world assoc-in path ^{:state :waiting} {})
-    (flickr-call payload
-      (fn [data]
-        (let [data (js->clj data :keywordize-keys true)]
-          (swap! world assoc-in path
-            (condp = (:stat data)
-              "ok"   (with-meta (attr data) {:state :fetched})
-              "fail" (with-meta data {:state :failed})))
-          (when cb (cb)))))))
+  (let [data (get-in @world path)]
+    (when (empty? data)
+      (swap! world assoc-in path
+        ^{:state :waiting :date (.getDate (js/Date.))} {}))
+    (when (old? data)
+      (flickr-call payload
+        (fn [data]
+          (let [data (js->clj data :keywordize-keys true)]
+            (swap! world assoc-in path
+              (condp = (:stat data)
+                "ok"
+                (with-meta (attr data)
+                  {:state :fetched
+                   :date (.getTime (js/Date.))})
+
+                "fail"
+                (if (>= (:code data) 100) ;; not user input fault
+                  nil
+                  (with-meta data
+                    {:state :failed}))))
+            (when cb (cb))))))))
 
 (defn fetched? [data]
   (= :fetched (:state (meta data))))
