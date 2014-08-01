@@ -27,6 +27,11 @@
             (js/requestAnimationFrame render)
             (js/setTimeout render 16)))))
 
+    (add-watch data/world ::store
+      (fn []
+        (binding [*print-meta* true]
+          (.setItem js/window.localStorage "data" (pr-str (:data @data/world))))))
+
     ;; listen for path changes
     (.addEventListener js/window "hashchange"
       #(let [path (get-route)
@@ -34,6 +39,11 @@
          (swap! data/world assoc-in [:opts :path] path)))
 
     ;; kick off rendering
-    (swap! data/world update-in [:opts] merge
-      {:target id :path (get-route)}
-      (or opts {}))))
+    (let [stored (.getItem js/window.localStorage "data")]
+      (swap! data/world
+        #(-> %
+           (update-in [:data] merge
+             (read-string (or stored "nil")))
+           (update-in [:opts] merge
+             {:target id :path (get-route)}
+             (or opts {})))))))
