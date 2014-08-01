@@ -21,7 +21,7 @@
           (d/input (assoc input :id id)))))))
 
 (q/defcomponent Form
-  [{:keys [form data]} setter]
+  [{:keys [form] :as data} setter]
   (d/form {:className "form-horizontal"
            :onSubmit (fn [e]
                        (.preventDefault e)
@@ -59,14 +59,14 @@
                             :onChange #(setter :set (.. % -target -value))}})
 
         (d/div {:className "control-group"}
-          (if false
+          (if-not (empty? (:sets data))
 
             (d/div {:className "controls"}
               "Or select something from your history: "
               (apply d/ul nil
-                (for [[key name] []]
+                (for [[key info] (:sets data)]
                   (d/li nil
-                    (d/a {:href (str "#" key)} name)))))
+                    (d/a {:href (str "#" key)} (:title info))))))
 
             (d/div {:className "controls"}
               "Or watch an "
@@ -81,7 +81,16 @@
                             :placeholder "User id or username"
                             :tabIndex 2
                             :value (:user form "")
-                            :onChange #(setter :user (.. % -target -value))}})))
+                            :onChange #(setter :user (.. % -target -value))}})
+
+        (if-not (empty? (:users data))
+          (d/div {:className "controls"}
+            "Or browse someone from your history: "
+            (apply d/ul nil
+              (for [[key info] (:users data)]
+                (when (:sets info)
+                  (d/li nil
+                    (d/a {:href (str "#user/" key)} key)))))))))
 
     (d/div {:className "form-actions"}
       (d/input {:type "submit"
