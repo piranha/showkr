@@ -4,7 +4,7 @@ fig:
 	lein figwheel dev
 
 min:
-	lein cljsbuild once min
+	lein cljsbuild auto min
 
 css: resources/public/style.css
 
