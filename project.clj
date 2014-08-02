@@ -8,6 +8,7 @@
   :dependencies [[org.clojure/clojure "1.6.0"]
                  [org.clojure/clojurescript "0.0-2280"]
                  [com.facebook/react "0.11.1"]
+                 [medley "0.5.0"]
                  [quiescent "0.1.4"]
                  [keybind "0.1.0"]
                  [figwheel "0.1.3-SNAPSHOT"]]
