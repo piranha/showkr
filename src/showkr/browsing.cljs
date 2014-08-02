@@ -2,10 +2,10 @@
   (:require [quiescent :as q :include-macros true]
             [quiescent.dom :as d]
 
+            [showkr.utils :refer-macros [p]]
             [showkr.data :as data]
             [showkr.ui :as ui]
             [showkr.viewing :refer [photo-url]]))
-
 
 (q/defcomponent Set
   [{:keys [id title date_create photos description] :as set}]
@@ -40,8 +40,8 @@
       (ui/spinner)
 
       (d/div {:className "alert alert-error"}
-        "It seems that user "
+        "Could not fetch user "
         (d/b nil username)
-        " does not exist. Go to "
+        ". It could be an error or it just does not exist. Go to "
         (d/a {:href "#"} "index page.")))
     :onMount #(data/fetch-user username)))

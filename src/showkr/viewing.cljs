@@ -5,6 +5,7 @@
             [quiescent.dom :as d]
             [keybind :as key]
 
+            [showkr.utils :refer-macros [p]]
             [showkr.data :as data]
             [showkr.ui :as ui]))
 
@@ -102,7 +103,7 @@
 (q/defcomponent Set
   [{:keys [id set scroll-id]}]
   (q/wrapper
-    (condp = (:state (meta set))
+    (condp = (-> set meta :state)
       :fetched
       (apply d/div nil
         (if (:title set)

@@ -1,5 +1,7 @@
 (ns showkr.data
-  (:import [goog.net Jsonp]))
+  (:import [goog.net Jsonp])
+
+  (:require [showkr.utils :refer-macros [p]]))
 
 (def URL "https://api.flickr.com/services/rest/")
 (def OPTS {:api_key "1606ff0ad63a3b5efeaa89443fe80704"
@@ -26,31 +28,40 @@
        (or (-> data meta :date) 0))
     *old-threshold*))
 
+(defn fetched? [data]
+  (= :fetched (:state (meta data))))
+
 (defn flickr-fetch [path attr payload & [cb]]
   (let [data (get-in @world path)]
     (when (empty? data)
+      ;(js/console.log (str (pr-str path) " is empty"))
       (swap! world assoc-in path
-        ^{:state :waiting :date (.getDate (js/Date.))} {}))
+        ^{:state :waiting :date (.getTime (js/Date.))} {}))
     (when (old? data)
+      ;(js/console.log (str (pr-str path) " is too old"))
       (flickr-call payload
         (fn [data]
           (let [data (js->clj data :keywordize-keys true)]
-            (swap! world assoc-in path
-              (condp = (:stat data)
-                "ok"
-                (with-meta (attr data)
-                  {:state :fetched
-                   :date (.getTime (js/Date.))})
+            (condp = (:stat data)
+              "ok"
+              ;; NOTE: I'm not exactly sure this is the best behavior, but for
+              ;; now it worked for me. I guess I need to think of better general
+              ;; layout. Probably I should put fetched data in another fetched
+              ;; data, but it's too convenient to render.
+              ;;
+              ;; FIXME: Maybe switch to DataScript and make joins and all the
+              ;; fun stuff?
+              (swap! world update-in path
+                #(with-meta (merge % (attr data)) {:state :fetched
+                                                   :date (.getTime (js/Date.))}))
 
-                "fail"
+              "fail"
+              (swap! world assoc-in path
                 (if (>= (:code data) 100) ;; not user input fault
                   nil
                   (with-meta data
                     {:state :failed}))))
             (when cb (cb))))))))
-
-(defn fetched? [data]
-  (= :fetched (:state (meta data))))
 
 ;;; A-la flux or something, call it and data will appear
 
