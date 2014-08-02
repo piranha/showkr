@@ -70,7 +70,7 @@
 
             (d/div {:className "controls"}
               "Or watch an "
-              (d/a {:href "#72157627590185596"} "example")))))
+              (d/a {:href "#72157629517765623"} "example")))))
 
       (d/fieldset {:className "span6"}
         (d/legend nil "Browse user albums")
