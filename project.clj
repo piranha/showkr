@@ -3,15 +3,19 @@
   :url "http://showkr.solovyov.net/"
 
   :plugins [[lein-cljsbuild "1.0.3"]
-            [lein-figwheel "0.1.3-SNAPSHOT"]]
+            [lein-figwheel "0.1.3-SNAPSHOT"]
+            [lein-npm "0.4.0"]]
 
   :dependencies [[org.clojure/clojure "1.6.0"]
-                 [org.clojure/clojurescript "0.0-2280"]
+                 [org.clojure/clojurescript "0.0-2311"]
                  [com.facebook/react "0.11.1"]
-                 [medley "0.5.0"]
                  [quiescent "0.1.4"]
+                 [datascript "0.1.6"]
                  [keybind "0.1.0"]
+                 [medley "0.5.0"]
                  [figwheel "0.1.3-SNAPSHOT"]]
+
+  :node-dependencies [[less "1.4.2"]]
 
   :source-paths ["src"]
 
@@ -32,6 +36,6 @@
                          :externs ["react/externs/react.js"]}}]}
 
   :figwheel {
-    :port 8888
+    :server-port 8888
     :css-dirs ["resources/public"]
   })
