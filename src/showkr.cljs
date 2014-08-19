@@ -12,7 +12,7 @@
 (defn render []
   (js/console.log "rendering" #_ (clj->js @data/world))
   (set! render-queued false)
-  (q/render (Root @data/world)
+  (q/render (Root (assoc @data/world :db @data/db))
     (.getElementById js/document (-> @data/world :opts :target))))
 
 (defn queue-render []

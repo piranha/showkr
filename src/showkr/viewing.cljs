@@ -7,7 +7,7 @@
             [datascript :as db]
 
             [showkr.utils :refer-macros [p]]
-            [showkr.data :as data :refer [db]]
+            [showkr.data :as data]
             [showkr.ui :as ui]))
 
 
@@ -66,8 +66,8 @@
       (d/ul {:className "pager"}))))
 
 (q/defcomponent Photo
-  [{:keys [photo-id idx scroll-id set-id] :as photo}]
-  (let [photo (db/entity @db photo-id)
+  [{:keys [db photo-id idx scroll-id set-id owner] :as photo}]
+  (let [photo (db/entity db photo-id)
         upd (fn [node]
               #_(data/fetch-comments set-id idx)
               (if (= (:id photo) scroll-id)
@@ -80,7 +80,7 @@
         (d/small {:rel "description"} (:description photo))
         (d/div {:className "row"}
           (d/div {:className "span8"}
-            (d/a {:href (flickr-url photo)}
+            (d/a {:href (flickr-url (assoc photo :owner owner))}
               (d/img {:src (photo-url photo :medium)})))
           #_ (CommentList (:comments photo))))
       :onMount upd
@@ -103,38 +103,40 @@
   (key/unbind! "shift-space" ::prev))
 
 (q/defcomponent Set
-  [{:keys [id set scroll-id]}]
-  (q/wrapper
-    (condp = (:showkr/state set)
-      :fetched
-      (apply d/div nil
-        (if (:title set)
-          (d/h1 nil
-            (d/span {:rel "title"} (:title set))))
-        (d/small {:rel "description"} (:description set))
+  [{:keys [db id scroll-id]}]
+  (let [set (data/by-id db id)]
+    (q/wrapper
+      (condp = (:showkr/state set)
+        :fetched
+        (apply d/div nil
+          (if (:title set)
+            (d/h1 nil
+              (d/span {:rel "title"} (:title set))))
+          (d/small {:rel "description"} (:description set))
 
-        (map-indexed
-          #(Photo {:idx %1
-                   :photo-id %2
-                   :set-id id
-                   :scroll-id scroll-id
-                   :owner (:owner set)})
-          (:photo set)))
+          (map-indexed
+            #(Photo {:db db
+                     :idx %1
+                     :photo-id %2
+                     :set-id id
+                     :scroll-id scroll-id
+                     :owner (:owner set)})
+            (:photo set)))
 
-      :waiting
-      (ui/spinner)
+        :waiting
+        (ui/spinner)
 
-      (d/div {:className "alert alert-error"}
-        "It seems that set "
-        (d/b nil id)
-        " does not exist. Go to "
-        (d/a {:href "#"} "index page.")))
+        (d/div {:className "alert alert-error"}
+          "It seems that set "
+          (d/b nil id)
+          " does not exist. Go to "
+          (d/a {:href "#"} "index page.")))
 
-    :onMount (fn [node]
-               (data/fetch-set-db id)
-               (bind-controls! set scroll-id))
-    :onUpdate (fn [node]
-                (data/fetch-set-db id)
-                (bind-controls! set scroll-id))
-    :onWillUnmount (fn []
-                     (unbind-controls!))))
+      :onMount (fn [node]
+                 (data/fetch-set-db id)
+                 (bind-controls! set scroll-id))
+      :onUpdate (fn [node]
+                  (data/fetch-set-db id)
+                  (bind-controls! set scroll-id))
+      :onWillUnmount (fn []
+                       (unbind-controls!)))))

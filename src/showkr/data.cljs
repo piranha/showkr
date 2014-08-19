@@ -105,7 +105,6 @@
                     :photoset_id id
                     :extras "original_format,description,path_alias"}
         (fn [data]
-          (js/console.log data)
           (let [data (js->clj data :keywordize-keys true)]
             (condp = (:stat data)
               "ok"

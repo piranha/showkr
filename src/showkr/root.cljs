@@ -8,7 +8,7 @@
             [showkr.browsing :refer [User]]))
 
 (q/defcomponent Root
-  [{:keys [data opts]}]
+  [{:keys [data db opts]}]
   (let [{:keys [path hide-title]} opts]
     (cond
       (= path "about")
@@ -22,8 +22,8 @@
 
       (re-matches #"^\d+(/(\d+)?)?$" path)
       (let [[set-id scroll-id] (.split path "/")]
-        (Set {:id set-id
-              :set (data/by-id @data/db set-id)
+        (Set {:db db
+              :id set-id
               :scroll-id scroll-id}))
 
       :else
