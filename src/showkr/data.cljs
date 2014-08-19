@@ -1,7 +1,8 @@
 (ns showkr.data
   (:import [goog.net Jsonp])
 
-  (:require [showkr.utils :refer-macros [p]]))
+  (:require [datascript :as d]
+            [showkr.utils :refer-macros [p]]))
 
 (def URL "https://api.flickr.com/services/rest/")
 (def OPTS {:api_key "1606ff0ad63a3b5efeaa89443fe80704"
@@ -15,6 +16,9 @@
          :data {:form {}
                 :sets {}
                 :users {}}}))
+
+(defonce db (d/create-conn {:photo {:db/cardinality :db.cardinality/many}
+                            :set {:db/cardinality :db.cardinality/many}}))
 
 (defn- flickr-error [payload]
   (js/console.error "Error fetching data with parameters:" payload))
@@ -63,7 +67,52 @@
                     {:state :failed}))))
             (when cb (cb))))))))
 
+(defn by-id [db id]
+  (let [db-id (-> '[:find ?e :in $ ?id :where [?e :id ?id]]
+                (d/q db id)
+                ffirst)]
+    (when db-id
+      (d/entity db db-id))))
+
 ;;; A-la flux or something, call it and data will appear
+
+(defn photo->local [set-id idx photo]
+  (assoc photo
+    :db/id (- -1 idx)
+    :showkr/state :fetched
+    :showkr/type :photo
+    :set [set-id]
+    :description (-> photo :description :_content)))
+
+(defn store-set! [db db-id set]
+  (let [photos (map-indexed (partial photo->local db-id) (:photo set))
+        photo-tx (d/transact! db photos)]
+    (d/transact! db
+      [(assoc set
+         :db/id db-id
+         :showkr/state :fetched
+         :showkr/type :set
+         :photo (vals (:tempids photo-tx)))])))
+
+(defn fetch-set-db [id]
+  (when-not (by-id @db id)
+    (let [tx (d/transact! db [{:db/id -1
+                               :id id
+                               :showkr/state :waiting
+                               :showkr/type :set}])
+          db-id (get (:tempids tx) -1)]
+      (flickr-call {:method "flickr.photosets.getPhotos"
+                    :photoset_id id
+                    :extras "original_format,description,path_alias"}
+        (fn [data]
+          (js/console.log data)
+          (let [data (js->clj data :keywordize-keys true)]
+            (condp = (:stat data)
+              "ok"
+              (store-set! db db-id (:photoset data))
+
+              "fail"
+              (js/console.log "query failed" "fetch-set" id))))))))
 
 (defn fetch-set [id]
   (flickr-fetch [:data :sets id] :photoset

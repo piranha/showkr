@@ -23,7 +23,7 @@
       (re-matches #"^\d+(/(\d+)?)?$" path)
       (let [[set-id scroll-id] (.split path "/")]
         (Set {:id set-id
-              :set (get-in data [:sets set-id])
+              :set (data/by-id @data/db set-id)
               :scroll-id scroll-id}))
 
       :else

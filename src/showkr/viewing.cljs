@@ -4,9 +4,10 @@
             [quiescent :as q :include-macros true]
             [quiescent.dom :as d]
             [keybind :as key]
+            [datascript :as db]
 
             [showkr.utils :refer-macros [p]]
-            [showkr.data :as data]
+            [showkr.data :as data :refer [db]]
             [showkr.ui :as ui]))
 
 
@@ -65,22 +66,23 @@
       (d/ul {:className "pager"}))))
 
 (q/defcomponent Photo
-  [{:keys [idx id scroll-id set-id title description] :as photo}]
-  (let [upd (fn [node]
-              (data/fetch-comments set-id idx)
-              (if (= id scroll-id)
+  [{:keys [photo-id idx scroll-id set-id] :as photo}]
+  (let [photo (db/entity @db photo-id)
+        upd (fn [node]
+              #_(data/fetch-comments set-id idx)
+              (if (= (:id photo) scroll-id)
                 (scroll-to node)))]
     (q/wrapper
       (d/div nil
-        (d/h3 nil (str (inc idx) ". " title " ")
-          (d/a {:className "anchor" :href (str "#" set-id "/" id)} "#"))
+        (d/h3 nil (str (inc idx) ". " (:title photo) " ")
+          (d/a {:className "anchor" :href (str "#" set-id "/" photo-id)} "#"))
 
-        (d/small {:rel "description"} (:_content description))
+        (d/small {:rel "description"} (:description photo))
         (d/div {:className "row"}
           (d/div {:className "span8"}
             (d/a {:href (flickr-url photo)}
               (d/img {:src (photo-url photo :medium)})))
-          (CommentList (:comments photo))))
+          #_ (CommentList (:comments photo))))
       :onMount upd
       :onUpdate upd)))
 
@@ -103,7 +105,7 @@
 (q/defcomponent Set
   [{:keys [id set scroll-id]}]
   (q/wrapper
-    (condp = (-> set meta :state)
+    (condp = (:showkr/state set)
       :fetched
       (apply d/div nil
         (if (:title set)
@@ -112,10 +114,11 @@
         (d/small {:rel "description"} (:description set))
 
         (map-indexed
-          #(Photo (assoc %2 :idx %1
-                         :set-id id
-                         :scroll-id scroll-id
-                         :owner (:owner set)))
+          #(Photo {:idx %1
+                   :photo-id %2
+                   :set-id id
+                   :scroll-id scroll-id
+                   :owner (:owner set)})
           (:photo set)))
 
       :waiting
@@ -128,10 +131,10 @@
         (d/a {:href "#"} "index page.")))
 
     :onMount (fn [node]
-               (data/fetch-set id)
+               (data/fetch-set-db id)
                (bind-controls! set scroll-id))
     :onUpdate (fn [node]
-                (data/fetch-set id)
+                (data/fetch-set-db id)
                 (bind-controls! set scroll-id))
     :onWillUnmount (fn []
                      (unbind-controls!))))

@@ -10,24 +10,26 @@
 
 (def ^:private render-queued false)
 (defn render []
-  (js/console.log "rendering" (clj->js @data/world))
+  (js/console.log "rendering" #_ (clj->js @data/world))
   (set! render-queued false)
   (q/render (Root @data/world)
     (.getElementById js/document (-> @data/world :opts :target))))
+
+(defn queue-render []
+  (when-not render-queued
+    (set! render-queued true)
+    (if (exists? js/requestAnimationFrame)
+      (js/requestAnimationFrame render)
+      (js/setTimeout render 16))))
 
 (defn ^:export main [id opts]
   (let [opts (js->clj opts :keywordize-keys true)]
 
     ;; listen for data changes
-    (add-watch data/world ::render
-      (fn []
-        (when-not render-queued
-          (set! render-queued true)
-          (if (exists? js/requestAnimationFrame)
-            (js/requestAnimationFrame render)
-            (js/setTimeout render 16)))))
+    (add-watch data/world ::render queue-render)
+    (add-watch data/db ::render queue-render)
 
-    (add-watch data/world ::store
+    #_(add-watch data/world ::store
       (fn []
         (binding [*print-meta* true]
           (.setItem js/window.localStorage "data" (pr-str (:data @data/world))))))

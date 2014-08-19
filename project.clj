@@ -10,9 +10,9 @@
                  [org.clojure/clojurescript "0.0-2311"]
                  [com.facebook/react "0.11.1"]
                  [quiescent "0.1.4"]
-                 [datascript "0.1.6"]
+                 [datascript "0.2.0"]
                  [keybind "0.1.0"]
-                 [medley "0.5.0"]
+                 [medley "0.5.0" :exclusions [org.clojure/clojure]]
                  [figwheel "0.1.3-SNAPSHOT"]]
 
   :node-dependencies [[less "1.4.2"]]
