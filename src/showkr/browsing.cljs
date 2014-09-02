@@ -26,7 +26,7 @@
 (q/defcomponent User
   [{:keys [username user hide-title]}]
   (q/wrapper
-    (condp = (-> user :sets meta :state)
+    (case (-> user :sets meta :state)
       :fetched
       (apply d/div nil
         (when-not hide-title

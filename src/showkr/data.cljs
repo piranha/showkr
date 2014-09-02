@@ -46,7 +46,7 @@
       (flickr-call payload
         (fn [data]
           (let [data (js->clj data :keywordize-keys true)]
-            (condp = (:stat data)
+            (case (:stat data)
               "ok"
               ;; NOTE: I'm not exactly sure this is the best behavior, but for
               ;; now it worked for me. I guess I need to think of better general
@@ -106,7 +106,7 @@
                     :extras "original_format,description,path_alias"}
         (fn [data]
           (let [data (js->clj data :keywordize-keys true)]
-            (condp = (:stat data)
+            (case (:stat data)
               "ok"
               (store-set! db db-id (:photoset data))
 

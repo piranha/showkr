@@ -9,25 +9,25 @@
             [showkr.root :refer [Root]]))
 
 (def ^:private render-queued false)
-(defn render []
+(defn ^:private actually-render []
   (js/console.log "rendering" #_ (clj->js @data/world))
   (set! render-queued false)
   (q/render (Root (assoc @data/world :db @data/db))
     (.getElementById js/document (-> @data/world :opts :target))))
 
-(defn queue-render []
+(defn render []
   (when-not render-queued
     (set! render-queued true)
     (if (exists? js/requestAnimationFrame)
-      (js/requestAnimationFrame render)
-      (js/setTimeout render 16))))
+      (js/requestAnimationFrame actually-render)
+      (js/setTimeout actually-render 16))))
 
 (defn ^:export main [id opts]
   (let [opts (js->clj opts :keywordize-keys true)]
 
     ;; listen for data changes
-    (add-watch data/world ::render queue-render)
-    (add-watch data/db ::render queue-render)
+    (add-watch data/world ::render render)
+    (add-watch data/db ::render render)
 
     #_(add-watch data/world ::store
       (fn []

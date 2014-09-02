@@ -51,7 +51,7 @@
 
 (q/defcomponent CommentList
   [comments]
-  (condp = (:state (meta comments))
+  (case (:state (meta comments))
     nil
     (d/div {:className "span4 comments"})
 
@@ -80,7 +80,7 @@
         (d/small {:rel "description"} (:description photo))
         (d/div {:className "row"}
           (d/div {:className "span8"}
-            (d/a {:href (flickr-url (assoc photo :owner owner))}
+            (d/a {:href (flickr-url (into {:owner owner} photo))}
               (d/img {:src (photo-url photo :medium)})))
           #_ (CommentList (:comments photo))))
       :onMount upd
@@ -106,7 +106,7 @@
   [{:keys [db id scroll-id]}]
   (let [set (data/by-id db id)]
     (q/wrapper
-      (condp = (:showkr/state set)
+      (case (:showkr/state set)
         :fetched
         (apply d/div nil
           (if (:title set)
