@@ -11,3 +11,4 @@ pom.xml
 /resources/public/js/
 /resources/public/style.css
 /www/
+/node_modules/
