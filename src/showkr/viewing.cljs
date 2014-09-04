@@ -75,7 +75,7 @@
     (q/wrapper
       (d/div nil
         (d/h3 nil (str (inc idx) ". " (:title photo) " ")
-          (d/a {:className "anchor" :href (str "#" set-id "/" photo-id)} "#"))
+          (d/a {:className "anchor" :href (str "#" set-id "/" (:id photo))} "#"))
 
         (d/small {:rel "description"} (:description photo))
         (d/div {:className "row"}
@@ -89,13 +89,13 @@
       :onMount upd
       :onUpdate upd)))
 
-(defn bind-controls! [set current]
-  (key/bind! "j" ::next #(data/watch-next set current))
-  (key/bind! "down" ::next #(data/watch-next set current))
-  (key/bind! "space" ::next #(data/watch-next set current))
-  (key/bind! "k" ::prev #(data/watch-prev set current))
-  (key/bind! "up" ::prev #(data/watch-prev set current))
-  (key/bind! "shift-space" ::prev #(data/watch-prev set current)))
+(defn bind-controls! [set-id current-id]
+  (key/bind! "j" ::next #(data/watch-next set-id current-id))
+  (key/bind! "down" ::next #(data/watch-next set-id current-id))
+  (key/bind! "space" ::next #(data/watch-next set-id current-id))
+  (key/bind! "k" ::prev #(data/watch-prev set-id current-id))
+  (key/bind! "up" ::prev #(data/watch-prev set-id current-id))
+  (key/bind! "shift-space" ::prev #(data/watch-prev set-id current-id)))
 
 (defn unbind-controls! []
   (key/unbind! "j" ::next)
@@ -107,7 +107,7 @@
 
 (q/defcomponent Set
   [{:keys [db id scroll-id]}]
-  (let [set (data/by-id db id)]
+  (let [set (data/by-attr db {:id id :showkr/type :set})]
     (q/wrapper
       (case (:showkr/state set)
         :fetched
@@ -139,9 +139,9 @@
 
       :onMount (fn [node]
                  (data/fetch-set-db id)
-                 (bind-controls! set scroll-id))
+                 (bind-controls! id scroll-id))
       :onUpdate (fn [node]
                   (data/fetch-set-db id)
-                  (bind-controls! set scroll-id))
+                  (bind-controls! id scroll-id))
       :onWillUnmount (fn []
                        (unbind-controls!)))))

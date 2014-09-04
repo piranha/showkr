@@ -15,9 +15,9 @@
       (d/div nil "about")
 
       (re-matches #"^user/.*" path)
-      (let [username (.slice path 5)]
-        (User {:username username
-               :user (get-in data [:users username])
+      (let [login (.slice path 5)]
+        (User {:db db
+               :login login
                :hide-title hide-title}))
 
       (re-matches #"^\d+(/(\d+)?)?$" path)
