@@ -49,4 +49,4 @@
           (d/a {:href "#"} "index page."))
 
         (d/noscript))
-      :onMount #(data/fetch-user-db login))))
+      :onMount #(data/fetch-user login))))

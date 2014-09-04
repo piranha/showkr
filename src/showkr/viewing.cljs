@@ -69,7 +69,7 @@
   [{:keys [db photo idx scroll-id set-id owner] :as photo}]
   (let [comments (:comment/_photo photo)
         upd (fn [node]
-              (data/fetch-comments-db photo)
+              (data/fetch-comments photo)
               (if (= (:id photo) scroll-id)
                 (scroll-to node)))]
     (q/wrapper
@@ -107,7 +107,10 @@
 
 (q/defcomponent Set
   [{:keys [db id scroll-id]}]
-  (let [set (data/by-attr db {:id id :showkr/type :set})]
+  (let [set (data/by-attr db {:id id :showkr/type :set})
+        upd (fn []
+              (data/fetch-set id)
+              (bind-controls! id scroll-id))]
     (q/wrapper
       (case (:showkr/state set)
         :fetched
@@ -137,11 +140,6 @@
           " does not exist. Go to "
           (d/a {:href "#"} "index page.")))
 
-      :onMount (fn [node]
-                 (data/fetch-set-db id)
-                 (bind-controls! id scroll-id))
-      :onUpdate (fn [node]
-                  (data/fetch-set-db id)
-                  (bind-controls! id scroll-id))
-      :onWillUnmount (fn []
-                       (unbind-controls!)))))
+      :onMount upd
+      :onUpdate upd
+      :onWillUnmount unbind-controls!)))

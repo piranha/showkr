@@ -17,57 +17,12 @@
                 :sets {}
                 :users {}}}))
 
+;; datascript stuff
+
 (defonce db (db/create-conn {:photo {:db/cardinality :db.cardinality/many}
                              :set {:db/cardinality :db.cardinality/many}
                              :comment/photo {:db/valueType :db.type/ref}
                              :set/user {:db/valueType :db.type/ref}}))
-
-(defn- flickr-error [payload]
-  (js/console.error "Error fetching data with parameters:" payload))
-
-(defn flickr-call [payload callback]
-  (let [q (Jsonp. URL "jsoncallback")]
-    (.send q (clj->js (merge OPTS payload)) callback flickr-error)))
-
-(defn old? [data]
-  (> (- (.getTime (js/Date.))
-       (or (-> data meta :date) 0))
-    *old-threshold*))
-
-(defn fetched? [data]
-  (= :fetched (:state (meta data))))
-
-(defn flickr-fetch [path attr payload & [cb]]
-  (let [data (get-in @world path)]
-    (when (empty? data)
-      ;(js/console.log (str (pr-str path) " is empty"))
-      (swap! world assoc-in path
-        ^{:state :waiting :date (.getTime (js/Date.))} {}))
-    (when (old? data)
-      ;(js/console.log (str (pr-str path) " is too old"))
-      (flickr-call payload
-        (fn [data]
-          (let [data (js->clj data :keywordize-keys true)]
-            (case (:stat data)
-              "ok"
-              ;; NOTE: I'm not exactly sure this is the best behavior, but for
-              ;; now it worked for me. I guess I need to think of better general
-              ;; layout. Probably I should put fetched data in another fetched
-              ;; data, but it's too convenient to render.
-              ;;
-              ;; FIXME: Maybe switch to DataScript and make joins and all the
-              ;; fun stuff?
-              (swap! world update-in path
-                #(with-meta (merge % (attr data)) {:state :fetched
-                                                   :date (.getTime (js/Date.))}))
-
-              "fail"
-              (swap! world assoc-in path
-                (if (>= (:code data) 100) ;; not user input fault
-                  nil
-                  (with-meta data
-                    {:state :failed}))))
-            (when cb (cb))))))))
 
 (defn by-attr [db attrmap]
   (let [q {:find '[?e] :where (mapv #(apply vector '?e %) attrmap)}
@@ -79,6 +34,37 @@
   (let [tempid (:db/id entity)
         tx (db/transact! db [entity])]
     (get (:tempids tx) tempid)))
+
+(defn- flickr-error [payload]
+  (js/console.error "Error fetching data with parameters:" payload))
+
+(defn flickr-call [payload callback]
+  (let [q (Jsonp. URL "jsoncallback")]
+    (.send q (clj->js (merge OPTS payload)) callback flickr-error)))
+
+(defn -flickr-fetch [db db-id payload cb]
+  (flickr-call payload
+    (fn [data]
+      (let [data (js->clj data :keywordize-keys true)]
+        (case (:stat data)
+          "ok"
+          (cb db-id data)
+
+          "fail"
+          (db/transact! db [[:db/add db-id :showkr/state :failed]]))))))
+
+(defn flickr-fetch [db attrmap payload cb]
+  (when-not (by-attr @db attrmap)
+    (let [db-id (transact->id! db
+                  (assoc attrmap :db/id -1 :showkr/state :waiting))]
+      (-flickr-fetch db db-id payload cb))))
+
+;;; helpers
+
+(defn old? [data]
+  (> (- (.getTime (js/Date.))
+       (or (-> data meta :date) 0))
+    *old-threshold*))
 
 ;;; converters
 
@@ -139,91 +125,39 @@
 
 ;;; A-la flux or something, call it and data will appear
 
-(defn fetch-set-db [id]
-  (when-not (by-attr @db {:id id :showkr/type :set})
-    (let [db-id (transact->id! db {:db/id -1 :id id
-                                   :showkr/state :waiting :showkr/type :set})]
-      (flickr-call {:method "flickr.photosets.getPhotos"
-                    :photoset_id id
-                    :extras "original_format,description,path_alias"}
-        (fn [data]
-          (let [data (js->clj data :keywordize-keys true)]
-            (case (:stat data)
-              "ok"
-              (store-set! db db-id (:photoset data))
+(defn fetch-set [id]
+  (flickr-fetch db {:id id :showkr/type :set}
+    {:method "flickr.photosets.getPhotos"
+     :photoset_id id
+     :extras "original_format,description,path_alias"}
+    (fn [db-id data]
+      (store-set! db db-id (:photoset data)))))
 
-              "fail"
-              (js/console.log "query failed" "fetch-set" id))))))))
-
-(defn fetch-comments-db [photo]
+(defn fetch-comments [photo]
   (when-not (:photo/comment-state photo)
     (db/transact! db [[:db/add (:db/id photo) :photo/comment-state :waiting]])
-    (flickr-call {:method "flickr.photos.comments.getList"
-                  :photo_id (:id photo)}
-      (fn [data]
-        (let [data (js->clj data :keywordize-keys true)]
-          (case (:stat data)
-            "ok"
-            (store-comments! db photo (-> data :comments :comment))
+    (-flickr-fetch db nil
+      {:method "flickr.photos.comments.getList"
+       :photo_id (:id photo)}
+      (fn [db-id data]
+        (store-comments! db photo (-> data :comments :comment))))))
 
-            "fail"
-            (js/console.log "query failed" "fetch-comments" (:id photo))))))))
-
-(defn fetch-user-sets-db [login]
+(defn fetch-user-sets [login]
   (let [user (by-attr @db {:login login})]
     (when (= :fetched (:showkr/state user))
-      (flickr-call {:method "flickr.photosets.getList"
-                    :user_id (:id user)}
-        (fn [data]
-          (let [data (js->clj data :keywordize-keys true)]
-            (case (:stat data)
-              "ok"
-              (store-user-sets! db user (-> data :photosets :photoset))
+      (-flickr-fetch db nil
+        {:method "flickr.photosets.getList"
+         :user_id (:id user)}
+        (fn [db-id data]
+          (store-user-sets! db user (-> data :photosets :photoset)))))))
 
-              "fail"
-              (js/console.log "query failed" "fetch-user-sets" login))))))))
-
-(defn fetch-user-db [login]
-  (when-not (by-attr @db {:login login})
-    (let [db-id (transact->id! db {:db/id -1 :login login
-                                   :showkr/state :waiting :showkr/type :user})]
-      (flickr-call {:method "flickr.urls.lookupUser"
-                    :url (str "https://flickr.com/photos/" login)}
-        (fn [data]
-          (let [data (js->clj data :keywordize-keys true)]
-            (case (:stat data)
-              "ok"
-              (do
-                (store-user! db db-id (:user data))
-                (fetch-user-sets-db login))
-
-              "fail"
-              (js/console.log "query failed" "fetch-user" login))))))))
-
-;; (defn fetch-set [id]
-;;   (flickr-fetch [:data :sets id] :photoset
-;;     {:method "flickr.photosets.getPhotos"
-;;      :photoset_id id
-;;      :extras "original_format,description,path_alias"}))
-
-;; (defn fetch-comments [set-id idx]
-;;   (when (fetched? (get-in @world [:data :sets set-id]))
-;;     (flickr-fetch [:data :sets set-id :photo idx :comments] :comments
-;;       {:method "flickr.photos.comments.getList"
-;;        :photo_id (get-in @world [:data :sets set-id :photo idx :id])})))
-
-;; (defn fetch-user-sets [username]
-;;   (let [user (get-in @world [:data :users username])]
-;;     (when (fetched? user)
-;;       (flickr-fetch [:data :users username :sets] :photosets
-;;         {:method "flickr.photosets.getList"
-;;          :user_id (:id user)}))))
-
-;; (defn fetch-user [username]
-;;   (flickr-fetch [:data :users username] :user
-;;     {:method "flickr.urls.lookupUser"
-;;      :url (str "https://flickr.com/photos/" username)}
-;;     #(fetch-user-sets username)))
+(defn fetch-user [login]
+  (flickr-fetch db {:login login}
+    {:method "flickr.urls.lookupUser"
+     :url (str "https://flickr.com/photos/" login)}
+    (fn [db-id data]
+      (store-user! db db-id (:user data))
+      (fetch-user-sets login))))
 
 ;;; not sure this is the right place
 
