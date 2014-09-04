@@ -88,7 +88,7 @@
 
 (defn comment->local [photo-id idx comment]
   (assoc comment
-    :id/id (- -1 idx)
+    :db/id (- -1 idx)
     :content (:_content comment)
     :comment/order idx
     :showkr/state :fetched
