@@ -18,7 +18,8 @@
                 :users {}}}))
 
 (defonce db (d/create-conn {:photo {:db/cardinality :db.cardinality/many}
-                            :set {:db/cardinality :db.cardinality/many}}))
+                            :set {:db/cardinality :db.cardinality/many}
+                            :comment/photo {:db/valueType :db.type/ref}}))
 
 (defn- flickr-error [payload]
   (js/console.error "Error fetching data with parameters:" payload))
@@ -79,10 +80,20 @@
 (defn photo->local [set-id idx photo]
   (assoc photo
     :db/id (- -1 idx)
+    :photo/order idx
     :showkr/state :fetched
     :showkr/type :photo
     :set [set-id]
     :description (-> photo :description :_content)))
+
+(defn comment->local [photo-id idx comment]
+  (assoc comment
+    :id/id (- -1 idx)
+    :content (:_content comment)
+    :comment/order idx
+    :showkr/state :fetched
+    :showkr/type :comment
+    :comment/photo photo-id))
 
 (defn store-set! [db db-id set]
   (let [photos (map-indexed (partial photo->local db-id) (:photo set))
@@ -94,12 +105,16 @@
          :showkr/type :set
          :photo (vals (:tempids photo-tx)))])))
 
+(defn store-comments! [db photo comments]
+  (d/transact! db [[:db/add (:db/id photo) :photo/comment-state :fetched]])
+  (when comments
+    (let [comments (map-indexed (partial comment->local (:db/id photo)) comments)]
+      (d/transact! db comments))))
+
 (defn fetch-set-db [id]
   (when-not (by-id @db id)
-    (let [tx (d/transact! db [{:db/id -1
-                               :id id
-                               :showkr/state :waiting
-                               :showkr/type :set}])
+    (let [tx (d/transact! db
+               [{:db/id -1 :id id :showkr/state :waiting :showkr/type :set}])
           db-id (get (:tempids tx) -1)]
       (flickr-call {:method "flickr.photosets.getPhotos"
                     :photoset_id id
@@ -112,6 +127,20 @@
 
               "fail"
               (js/console.log "query failed" "fetch-set" id))))))))
+
+(defn fetch-comments-db [photo]
+  (when-not (:photo/comment-state photo)
+    (d/transact! db [[:db/add (:db/id photo) :photo/comment-state :waiting]])
+    (flickr-call {:method "flickr.photos.comments.getList"
+                  :photo_id (:id photo)}
+      (fn [data]
+        (let [data (js->clj data :keywordize-keys true)]
+          (case (:stat data)
+            "ok"
+            (store-comments! db photo (-> data :comments :comment))
+
+            "fail"
+            (js/console.log "query failed" "fetch-comments" (:id photo))))))))
 
 (defn fetch-set [id]
   (flickr-fetch [:data :sets id] :photoset

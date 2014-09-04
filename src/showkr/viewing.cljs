@@ -38,7 +38,7 @@
 
 
 (q/defcomponent Comment
-  [{:keys [author authorname permalink datecreate _content] :as comment}]
+  [{:keys [author authorname permalink datecreate content] :as comment}]
   (d/li {:className "comment"}
     (d/div {:className "avatar"}
       (d/img {:src (flickr-avatar comment)}))
@@ -47,11 +47,11 @@
       (d/a {:href (str "http://flickr.com/photos/" author)} authorname)
       (d/a {:href permalink :className "anchor"} (ui/date datecreate))
       (d/div {:className "content"
-              :dangerouslySetInnerHTML (js-obj "__html" _content)}))))
+              :dangerouslySetInnerHTML (js-obj "__html" content)}))))
 
 (q/defcomponent CommentList
-  [comments]
-  (case (:state (meta comments))
+  [{:keys [state comments]}]
+  (case state
     nil
     (d/div {:className "span4 comments"})
 
@@ -61,15 +61,15 @@
     :fetched
     (d/div {:className "span4 comments"}
       (apply d/ul {:className "comments"}
-        (for [comment (:comment comments)]
+        (for [comment (sort-by :comment/order comments)]
           (Comment comment)))
       (d/ul {:className "pager"}))))
 
 (q/defcomponent Photo
-  [{:keys [db photo-id idx scroll-id set-id owner] :as photo}]
-  (let [photo (db/entity db photo-id)
+  [{:keys [db photo idx scroll-id set-id owner] :as photo}]
+  (let [comments (:comment/_photo photo)
         upd (fn [node]
-              #_(data/fetch-comments set-id idx)
+              (data/fetch-comments-db photo)
               (if (= (:id photo) scroll-id)
                 (scroll-to node)))]
     (q/wrapper
@@ -82,7 +82,10 @@
           (d/div {:className "span8"}
             (d/a {:href (flickr-url (into {:owner owner} photo))}
               (d/img {:src (photo-url photo :medium)})))
-          #_ (CommentList (:comments photo))))
+          (when comments
+            (CommentList {:state (:photo/comment-state photo)
+                          :comments (map (comp (partial db/entity db) :db/id)
+                                      comments)}))))
       :onMount upd
       :onUpdate upd)))
 
@@ -114,14 +117,16 @@
               (d/span {:rel "title"} (:title set))))
           (d/small {:rel "description"} (:description set))
 
-          (map-indexed
-            #(Photo {:db db
-                     :idx %1
-                     :photo-id %2
-                     :set-id id
-                     :scroll-id scroll-id
-                     :owner (:owner set)})
-            (:photo set)))
+          (let [photos (map (partial db/entity db) (:photo set))]
+
+            (map-indexed
+              #(Photo {:db db
+                       :idx %1
+                       :photo %2
+                       :set-id id
+                       :scroll-id scroll-id
+                       :owner (:owner set)})
+              (sort-by :photo/order photos))))
 
         :waiting
         (ui/spinner)
