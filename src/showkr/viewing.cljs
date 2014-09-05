@@ -120,16 +120,14 @@
               (d/span {:rel "title"} (:title set))))
           (d/small {:rel "description"} (:description set))
 
-          (let [photos (map (partial db/entity db) (:photo set))]
-
-            (map-indexed
-              #(Photo {:db db
-                       :idx %1
-                       :photo %2
-                       :set-id id
-                       :scroll-id scroll-id
-                       :owner (:owner set)})
-              (sort-by :photo/order photos))))
+          (map-indexed
+            #(Photo {:db db
+                     :idx %1
+                     :photo %2
+                     :set-id id
+                     :scroll-id scroll-id
+                     :owner (:owner set)})
+            (sort-by :photo/order (:photo set))))
 
         :waiting
         (ui/spinner)

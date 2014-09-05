@@ -19,21 +19,37 @@
 
 ;; datascript stuff
 
-(defonce db (db/create-conn {:photo {:db/cardinality :db.cardinality/many}
-                             :set {:db/cardinality :db.cardinality/many}
-                             :comment/photo {:db/valueType :db.type/ref}
-                             :set/user {:db/valueType :db.type/ref}}))
+(defonce db (db/create-conn
+  {:photo         {:db/cardinality :db.cardinality/many
+                   :db/valueType :db.type/ref}
+   :set           {:db/cardinality :db.cardinality/many
+                   :db/valueType :db.type/ref}
+   :comment/photo {:db/valueType :db.type/ref}
+   :set/user      {:db/valueType :db.type/ref}}))
+
+(defn only
+  "Return the only item from a query result"
+  [query-result]
+  (assert (>= 1 (count query-result)))
+  (assert (>= 1 (count (first query-result))))
+  (ffirst query-result))
+
+(defn qe
+  "Returns the single entity returned by a query."
+  [q db & args]
+  (when-let [id (only (apply db/q q db args))]
+    (db/entity db id)))
 
 (defn by-attr [db attrmap]
-  (let [q {:find '[?e] :where (mapv #(apply vector '?e %) attrmap)}
-        e (ffirst (db/q q db))]
-    (when e
-      (db/entity db e))))
+  (let [q {:find '[?e] :where (mapv #(apply vector '?e %) attrmap)}]
+    (qe q db)))
 
 (defn transact->id! [db entity]
   (let [tempid (:db/id entity)
         tx (db/transact! db [entity])]
     (get (:tempids tx) tempid)))
+
+;;; api utils
 
 (defn- flickr-error [payload]
   (js/console.error "Error fetching data with parameters:" payload))
@@ -161,29 +177,28 @@
 
 ;;; not sure this is the right place
 
-(defn watch-next [set-id photo-id]
-  #_ (datascript/q
-    '[:find ?id
-      :in $ ?set-id ?photo-id
-      :where
-      [?prev :id ?photo-id]
-      [?prev :photo/order ?prev-order]
-      [?e :set ?set-id]
-      [?e :photo/order (inc ?prev-order)]
-      [?e :id ?id]]
-    @showkr.data/db set-id photo-id)
+(def photo-order-q
+  '[:find ?order
+    :in $ ?set-id ?photo-id
+    :where
+    [?set :id ?set-id]
+    [?e :id ?photo-id]
+    [?e :set ?set]
+    [?e :photo/order ?order]])
 
-  (let [photos (:photo set-id)
-        next-photo (if-not photo-id
-                     (first photos)
-                     (second (drop-while #(not= (:id %) photo-id) photos)))]
-    (when next-photo
-      (set! js/location.hash (str "#" (:id set-id) "/" (:id next-photo))))))
+(def photo-by-order-q
+  '[:find ?e
+    :in $ ?set-id ?order
+    :where
+    [?set :id ?set-id]
+    [?e :set ?set]
+    [?e :photo/order ?order]])
 
-(defn watch-prev [set-id photo-id]
-  (when photo-id
-    (let [photos (:photo set-id)
-          prev-photo (-> (take-while #(not= (:id %) photo-id) photos)
-                       last)]
-      (when prev-photo
-        (set! js/location.hash (str "#" (:id set-id) "/" (:id prev-photo)))))))
+(defn subseq-photo [dir-fn set-id photo-id]
+  (let [order (dir-fn (ffirst (db/q photo-order-q @db set-id photo-id)))
+        photo (qe photo-by-order-q @db set-id order)]
+    (when photo
+      (set! js/location.hash (str "#" set-id "/" (:id photo))))))
+
+(def watch-next (partial subseq-photo (fnil inc -1)))
+(def watch-prev (partial subseq-photo dec))
