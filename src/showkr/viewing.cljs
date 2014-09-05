@@ -6,7 +6,7 @@
             [keybind :as key]
             [datascript :as db]
 
-            [showkr.utils :refer-macros [p]]
+            [showkr.utils :as u :refer-macros [p]]
             [showkr.data :as data]
             [showkr.ui :as ui]))
 
@@ -21,14 +21,14 @@
 ;; z  medium 640, 640 on longest side
 ;; b  large, 1024 on longest side*
 (let [sizes {:small "m" :medium "z" :big "b"}]
-  (defn photo-url [{:keys [farm server id secret] :as photo} size-name]
-    (let [size (size-name sizes)]
-      (str "http://farm" farm ".staticflickr.com/" server
-           "/" id "_" secret "_" size ".jpg"))))
+  (defn photo-url [photo size-name]
+    (apply u/fmt "http://farm%s.staticflickr.com/%s/%s_%s_%s.jpg"
+      (-> ((juxt :photo/farm :photo/server :photo/id :photo/secret) photo)
+        (conj (size-name sizes))))))
 
-(defn flickr-url [{:keys [id set-id pathalias owner] :as photo}]
-  (str "http://www.flickr.com/photos/" (or pathalias owner)
-       "/" id "/in/set-" set-id "/"))
+(defn flickr-url [photo set-id owner]
+  (u/fmt "http://www.flickr.com/photos/%s/%s/in/set-%s/"
+    (or (:photo/path-alias photo) owner) (:photo/id photo) set-id))
 
 (defn flickr-avatar [{:keys [author iconfarm iconserver] :as comment}]
   (if (= iconserver "0")
@@ -66,21 +66,23 @@
       (d/ul {:className "pager"}))))
 
 (q/defcomponent Photo
-  [{:keys [db photo idx scroll-id set-id owner] :as photo}]
+  [{:keys [db photo idx scroll-id set-id owner]}]
   (let [comments (:comment/_photo photo)
         upd (fn [node]
               (data/fetch-comments photo)
-              (if (= (:id photo) scroll-id)
+              (if (= (:photo/id photo) scroll-id)
                 (scroll-to node)))]
     (q/wrapper
       (d/div nil
         (d/h3 nil (str (inc idx) ". " (:title photo) " ")
-          (d/a {:className "anchor" :href (str "#" set-id "/" (:id photo))} "#"))
+          (d/a {:className "anchor"
+                :href (u/fmt "#%s/%s" set-id (:photo/id photo))} "#"))
 
         (d/small {:rel "description"} (:description photo))
+
         (d/div {:className "row"}
           (d/div {:className "span8"}
-            (d/a {:href (flickr-url (into {:owner owner} photo))}
+            (d/a {:href (flickr-url photo set-id owner)}
               (d/img {:src (photo-url photo :medium)})))
           (when comments
             (CommentList {:state (:photo/comment-state photo)
@@ -110,6 +112,7 @@
         upd (fn []
               (data/fetch-set id)
               (bind-controls! id scroll-id))]
+
     (q/wrapper
       (case (:showkr/state set)
         :fetched

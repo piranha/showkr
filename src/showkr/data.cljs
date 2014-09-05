@@ -22,10 +22,13 @@
 (defonce db (db/create-conn
   {:photo         {:db/cardinality :db.cardinality/many
                    :db/valueType :db.type/ref}
-   :set           {:db/cardinality :db.cardinality/many
+   :photo/set     {:db/cardinality :db.cardinality/many
                    :db/valueType :db.type/ref}
    :comment/photo {:db/valueType :db.type/ref}
    :set/user      {:db/valueType :db.type/ref}}))
+
+;; (defonce prr (atom false))
+;; (db/listen! db :test #(when @prr (js/console.log (pr-str (:tx-data %)))))
 
 (defn only
   "Return the only item from a query result"
@@ -67,7 +70,8 @@
           (cb db-id data)
 
           "fail"
-          (db/transact! db [[:db/add db-id :showkr/state :failed]]))))))
+          (when db-id
+            (db/transact! db [[:db/add db-id :showkr/state :failed]])))))))
 
 (defn flickr-fetch [db attrmap payload cb]
   (when-not (by-attr @db attrmap)
@@ -85,13 +89,22 @@
 ;;; converters
 
 (defn photo->local [set-id idx photo]
-  (assoc photo
-    :db/id (- -1 idx)
-    :photo/order idx
-    :showkr/state :fetched
-    :showkr/type :photo
-    :set [set-id]
-    :description (-> photo :description :_content)))
+  {:db/id (- -1 idx)
+   :showkr/state :fetched
+   :showkr/type :photo
+   :photo/order idx
+   :photo/id (:id photo)
+   :photo/set [set-id]
+
+   :photo/farm (photo :farm)
+   :photo/server (photo :server)
+   :photo/secret (photo :secret)
+   :photo/original-secret (photo :originalsecret)
+   :photo/original-format (photo :originalformat)
+   :photo/path-alias (photo :pathalias)
+
+   :title (photo :title)
+   :description (-> photo :description :_content)})
 
 (defn comment->local [photo-id idx comment]
   (assoc comment
@@ -154,8 +167,8 @@
     (db/transact! db [[:db/add (:db/id photo) :photo/comment-state :waiting]])
     (-flickr-fetch db nil
       {:method "flickr.photos.comments.getList"
-       :photo_id (:id photo)}
-      (fn [db-id data]
+       :photo_id (:photo/id photo)}
+      (fn [_ data]
         (store-comments! db photo (-> data :comments :comment))))))
 
 (defn fetch-user-sets [login]
@@ -182,8 +195,8 @@
     :in $ ?set-id ?photo-id
     :where
     [?set :id ?set-id]
-    [?e :id ?photo-id]
-    [?e :set ?set]
+    [?e :photo/id ?photo-id]
+    [?e :photo/set ?set]
     [?e :photo/order ?order]])
 
 (def photo-by-order-q
@@ -191,14 +204,14 @@
     :in $ ?set-id ?order
     :where
     [?set :id ?set-id]
-    [?e :set ?set]
+    [?e :photo/set ?set]
     [?e :photo/order ?order]])
 
 (defn subseq-photo [dir-fn set-id photo-id]
   (let [order (dir-fn (ffirst (db/q photo-order-q @db set-id photo-id)))
         photo (qe photo-by-order-q @db set-id order)]
     (when photo
-      (set! js/location.hash (str "#" set-id "/" (:id photo))))))
+      (set! js/location.hash (str "#" set-id "/" (:photo/id photo))))))
 
 (def watch-next (partial subseq-photo (fnil inc -1)))
 (def watch-prev (partial subseq-photo dec))
