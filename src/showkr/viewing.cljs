@@ -26,9 +26,11 @@
       (-> ((juxt :photo/farm :photo/server :photo/id :photo/secret) photo)
         (conj (size-name sizes))))))
 
-(defn flickr-url [photo set-id owner]
+(defn flickr-url [photo set-id]
   (u/fmt "http://www.flickr.com/photos/%s/%s/in/set-%s/"
-    (or (:photo/path-alias photo) owner) (:photo/id photo) set-id))
+    (or (:photo/path-alias photo) (-> photo :photo/set first :owner))
+    (:photo/id photo)
+    set-id))
 
 (defn comment-avatar [comment]
   (if (= (:icon/server comment) "0")
@@ -69,7 +71,7 @@
       (d/ul {:className "pager"}))))
 
 (q/defcomponent Photo
-  [{:keys [db photo idx scroll-id set-id owner]}]
+  [{:keys [db photo scroll-id set-id]}]
   (let [comments (:comment/_photo photo)
         upd (fn [node]
               (data/fetch-comments photo)
@@ -77,7 +79,7 @@
                 (scroll-to node)))]
     (q/wrapper
       (d/div nil
-        (d/h3 nil (str (inc idx) ". " (:title photo) " ")
+        (d/h3 nil (str (inc (:photo/order photo)) ". " (:title photo) " ")
           (d/a {:className "anchor"
                 :href (u/fmt "#%s/%s" set-id (:photo/id photo))} "#"))
 
@@ -85,7 +87,7 @@
 
         (d/div {:className "row"}
           (d/div {:className "span8"}
-            (d/a {:href (flickr-url photo set-id owner)}
+            (d/a {:href (flickr-url photo set-id)}
               (d/img {:src (photo-url photo :medium)})))
           (when comments
             (CommentList {:state (:photo/comment-state photo)
@@ -111,7 +113,7 @@
 
 (q/defcomponent Set
   [{:keys [db id scroll-id]}]
-  (let [set (data/by-attr db {:id id :showkr/type :set})
+  (let [set (data/by-attr db {:set/id id})
         upd (fn []
               (data/fetch-set id)
               (bind-controls! id scroll-id))]
@@ -125,14 +127,12 @@
               (d/span {:rel "title"} (:title set))))
           (d/small {:rel "description"} (:description set))
 
-          (map-indexed
-            #(Photo {:db db
-                     :idx %1
-                     :photo %2
+          (map
+            #(Photo {:photo %
+                     :db db
                      :set-id id
-                     :scroll-id scroll-id
-                     :owner (:owner set)})
-            (sort-by :photo/order (:photo set))))
+                     :scroll-id scroll-id})
+            (sort-by :photo/order (:photo/_set set))))
 
         :waiting
         (ui/spinner)

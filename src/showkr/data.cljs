@@ -20,9 +20,7 @@
 ;; datascript stuff
 
 (defonce db (db/create-conn
-  {:photo         {:db/cardinality :db.cardinality/many
-                   :db/valueType :db.type/ref}
-   :photo/set     {:db/cardinality :db.cardinality/many
+  {:photo/set     {:db/cardinality :db.cardinality/many
                    :db/valueType :db.type/ref}
    :comment/photo {:db/valueType :db.type/ref}
    :set/user      {:db/valueType :db.type/ref}}))
@@ -88,6 +86,22 @@
 
 ;;; converters
 
+(defn set->local [db-id set]
+  {:db/id db-id
+   :showkr/state :fetched
+   :set/id (set :id)
+
+   :set/pages (set :pages)
+   :set/page (set :page)
+   :set/per-page (set :per_page)
+   :set/total (set :total)
+
+   :set/primary (set :primary)
+   :set/owner (set :owner)
+
+   :title (set :title)
+   :description (set :description)})
+
 (defn photo->local [set-id idx photo]
   {:db/id (- -1 idx)
    :showkr/state :fetched
@@ -126,14 +140,8 @@
 ;;; data->db
 
 (defn store-set! [db db-id set]
-  (let [photos (map-indexed (partial photo->local db-id) (:photo set))
-        photo-tx (db/transact! db photos)]
-    (db/transact! db
-      [(assoc set
-         :db/id db-id
-         :showkr/state :fetched
-         :showkr/type :set
-         :photo (vals (:tempids photo-tx)))])))
+  (db/transact! db (map-indexed (partial photo->local db-id) (:photo set)))
+  (db/transact! db [(set->local db-id set)]))
 
 (defn store-comments! [db photo comments]
   (db/transact! db [[:db/add (:db/id photo) :photo/comment-state :fetched]])
