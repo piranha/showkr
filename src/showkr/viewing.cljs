@@ -84,8 +84,7 @@
               (d/img {:src (photo-url photo :medium)})))
           (when comments
             (CommentList {:state (:photo/comment-state photo)
-                          :comments (map (comp (partial db/entity db) :db/id)
-                                      comments)}))))
+                          :comments comments}))))
       :onMount upd
       :onUpdate upd)))
 
