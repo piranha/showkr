@@ -9,24 +9,24 @@
             [showkr.viewing :refer [photo-url]]))
 
 (q/defcomponent Set
-  [{:keys [id title date_create photos description] :as set}]
+  [set]
   (d/div {:className "row"}
     (d/div {:className "span6"}
       (d/h3 nil
-        (d/a {:href (str "#" id)} title))
-      (d/small nil description)
+        (d/a {:href (str "#" (:userset/id set))} (:title set)))
+      (d/small nil (:description set))
       (d/dl nil
         (d/dt nil "Created at")
-        (d/dd nil (ui/date date_create))
+        (d/dd nil (ui/date (:date/create set)))
         (d/dt nil "In total")
-        (d/dd nil photos)))
+        (d/dd nil (:set/total set))))
     (d/div {:className "span6"}
-      (d/a {:href (str "#" id)}
-        (d/img {:src (photo-url (assoc (into {} set) :id (:primary set)) :medium)})))))
+      (d/a {:href (str "#" (:userset/id set))}
+        (d/img {:src (photo-url set :medium)})))))
 
 (q/defcomponent User
   [{:keys [db login hide-title]}]
-  (let [user (data/by-attr db {:login login})]
+  (let [user (data/by-attr db {:user/login login})]
     (q/wrapper
       (case (:showkr/state user)
         :fetched
@@ -34,8 +34,8 @@
           (when-not hide-title
             (d/h1 nil
               "Sets of "
-              (d/a {:href (str "https://flickr.com/photos/" login)} (:username user))))
-          (for [set (:set/_user user)]
+              (d/a {:href (str "https://flickr.com/photos/" login)} (:user/name user))))
+          (for [set (:userset/_user user)]
             (Set set)))
 
         :waiting

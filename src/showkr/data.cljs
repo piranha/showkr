@@ -84,6 +84,9 @@
        (or (-> data meta :date) 0))
     *old-threshold*))
 
+(defn parse-date [d]
+  (-> d (js/parseInt 10) (* 1000) (js/Date.)))
+
 ;;; converters
 
 (defn set->local [db-id set]
@@ -109,8 +112,8 @@
    :photo/id (photo :id)
    :photo/set [set-id]
 
-   :photo/farm (photo :farm)
-   :photo/server (photo :server)
+   :flickr/farm (photo :farm)
+   :flickr/server (photo :server)
    :photo/secret (photo :secret)
    :photo/original-secret (photo :originalsecret)
    :photo/original-format (photo :originalformat)
@@ -126,9 +129,9 @@
    :comment/id (comment :id)
    :comment/photo photo-id
 
-   :icon/farm (comment :iconfarm)
-   :icon/server (comment :iconserver)
-   :comment/date (-> comment :datecreate (js/parseInt 10) (* 1000) (js/Date.))
+   :flickr/farm (comment :iconfarm)
+   :flickr/server (comment :iconserver)
+   :date/create (-> comment :datecreate parse-date)
    :comment/author (comment :author)
    :comment/author-name (comment :authorname)
    :comment/real-name (comment :realname)
@@ -136,6 +139,30 @@
    :comment/link (comment :permalink)
 
    :content (:_content comment)})
+
+(defn user->local [db-id user]
+  {:db/id db-id
+   :showkr/state :fetched
+   :user/id (user :id)
+
+   :user/name (-> user :username :_content)})
+
+(defn user-set->local [user-id idx set]
+  {:db/id (- -1 idx)
+   :showkr/state :fetched
+   :userset/user user-id
+   :userset/id (set :id)
+
+   :flickr/farm (set :farm)
+   :flickr/server (set :server)
+   :photo/secret (set :secret)
+   :date/update (-> set :date_update parse-date)
+   :date/create (-> set :date_create parse-date)
+   :set/primary (set :primary)
+   :set/total (-> set :photos (js/parseInt 10)) ; + (set :videos)?
+
+   :title (-> set :title :_content)
+   :description (-> set :description :_content)})
 
 ;;; data->db
 
@@ -146,32 +173,18 @@
 (defn store-comments! [db photo comments]
   (db/transact! db [[:db/add (:db/id photo) :photo/comment-state :fetched]])
   (when comments
-    (let [comments (map-indexed (partial comment->local (:db/id photo)) comments)]
-      (db/transact! db comments))))
+    (db/transact! db (map-indexed (partial comment->local (:db/id photo)) comments))))
 
 (defn store-user! [db db-id user]
-  (db/transact! db
-    [(assoc user
-       :db/id db-id
-       :username (-> user :username :_content)
-       :showkr/state :fetched
-       :showkr/type :user)]))
+  (db/transact! db [(user->local db-id user)]))
 
 (defn store-user-sets! [db user sets]
-  (db/transact! db
-    (map-indexed #(assoc %2
-                    :description (-> %2 :description :_content)
-                    :title (-> %2 :title :_content)
-                    :db/id (- -1 %1)
-                    :set/user (:db/id user)
-                    :showkr/state :fetched
-                    :showkr/type :user-set)
-      sets)))
+  (db/transact! db (map-indexed (partial user-set->local (:db/id user)) sets)))
 
 ;;; A-la flux or something, call it and data will appear
 
 (defn fetch-set [id]
-  (flickr-fetch db {:id id :showkr/type :set}
+  (flickr-fetch db {:set/id id}
     {:method "flickr.photosets.getPhotos"
      :photoset_id id
      :extras "original_format,description,path_alias"}
@@ -188,16 +201,16 @@
         (store-comments! db photo (-> data :comments :comment))))))
 
 (defn fetch-user-sets [login]
-  (let [user (by-attr @db {:login login})]
+  (let [user (by-attr @db {:user/login login})]
     (when (= :fetched (:showkr/state user))
       (-flickr-fetch db nil
         {:method "flickr.photosets.getList"
-         :user_id (:id user)}
+         :user_id (:user/id user)}
         (fn [db-id data]
           (store-user-sets! db user (-> data :photosets :photoset)))))))
 
 (defn fetch-user [login]
-  (flickr-fetch db {:login login}
+  (flickr-fetch db {:user/login login}
     {:method "flickr.urls.lookupUser"
      :url (str "https://flickr.com/photos/" login)}
     (fn [db-id data]
@@ -210,7 +223,7 @@
   '[:find ?order
     :in $ ?set-id ?photo-id
     :where
-    [?set :id ?set-id]
+    [?set :set/id ?set-id]
     [?e :photo/id ?photo-id]
     [?e :photo/set ?set]
     [?e :photo/order ?order]])
@@ -219,7 +232,7 @@
   '[:find ?e
     :in $ ?set-id ?order
     :where
-    [?set :id ?set-id]
+    [?set :set/id ?set-id]
     [?e :photo/set ?set]
     [?e :photo/order ?order]])
 

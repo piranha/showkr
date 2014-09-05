@@ -20,10 +20,13 @@
 ;; -  medium, 500 on longest side
 ;; z  medium 640, 640 on longest side
 ;; b  large, 1024 on longest side*
-(let [sizes {:small "m" :medium "z" :big "b"}]
+(let [sizes {:small "m" :medium "z" :big "b"}
+      prop-fn (juxt :flickr/farm :flickr/server
+                (some-fn :photo/id :set/primary) :photo/secret)]
   (defn photo-url [photo size-name]
     (apply u/fmt "http://farm%s.staticflickr.com/%s/%s_%s_%s.jpg"
-      (-> ((juxt :photo/farm :photo/server :photo/id :photo/secret) photo)
+      (-> photo
+        prop-fn
         (conj (size-name sizes))))))
 
 (defn flickr-url [photo set-id]
@@ -36,7 +39,7 @@
   (if (= (:icon/server comment) "0")
     "http://www.flickr.com/images/buddyicon.jpg"
     (apply u/fmt "http://farm%s.static.flickr.com/%s/buddyicons/%s.jpg"
-      ((juxt :icon/farm :icon/server :comment/author) comment))))
+      ((juxt :flickr/farm :flickr/server :comment/author) comment))))
 
 
 (q/defcomponent Comment
@@ -50,7 +53,7 @@
                     (or (:comment/path-alias comment) (:comment/author comment)))}
         (:comment/author-name comment))
       (d/a {:href (:comment/link comment) :className "anchor"}
-        (ui/date (:comment/date comment)))
+        (ui/date (:date/create comment)))
       (d/div {:className "content"
               :dangerouslySetInnerHTML (js-obj "__html" (:content comment))}))))
 
