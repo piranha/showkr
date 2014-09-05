@@ -91,9 +91,8 @@
 (defn photo->local [set-id idx photo]
   {:db/id (- -1 idx)
    :showkr/state :fetched
-   :showkr/type :photo
    :photo/order idx
-   :photo/id (:id photo)
+   :photo/id (photo :id)
    :photo/set [set-id]
 
    :photo/farm (photo :farm)
@@ -107,13 +106,22 @@
    :description (-> photo :description :_content)})
 
 (defn comment->local [photo-id idx comment]
-  (assoc comment
-    :db/id (- -1 idx)
-    :content (:_content comment)
-    :comment/order idx
-    :showkr/state :fetched
-    :showkr/type :comment
-    :comment/photo photo-id))
+  {:db/id (- -1 idx)
+   :showkr/state :fetched
+   :comment/order idx
+   :comment/id (comment :id)
+   :comment/photo photo-id
+
+   :icon/farm (comment :iconfarm)
+   :icon/server (comment :iconserver)
+   :comment/date (-> comment :datecreate (js/parseInt 10) (* 1000) (js/Date.))
+   :comment/author (comment :author)
+   :comment/author-name (comment :authorname)
+   :comment/real-name (comment :realname)
+   :comment/path-alias (comment :path_alias)
+   :comment/link (comment :permalink)
+
+   :content (:_content comment)})
 
 ;;; data->db
 

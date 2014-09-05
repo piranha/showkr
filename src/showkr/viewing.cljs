@@ -30,24 +30,27 @@
   (u/fmt "http://www.flickr.com/photos/%s/%s/in/set-%s/"
     (or (:photo/path-alias photo) owner) (:photo/id photo) set-id))
 
-(defn flickr-avatar [{:keys [author iconfarm iconserver] :as comment}]
-  (if (= iconserver "0")
+(defn comment-avatar [comment]
+  (if (= (:icon/server comment) "0")
     "http://www.flickr.com/images/buddyicon.jpg"
-    (str "http://farm" iconfarm ".static.flickr.com/" iconserver
-         "/buddyicons/" author ".jpg")))
+    (apply u/fmt "http://farm%s.static.flickr.com/%s/buddyicons/%s.jpg"
+      ((juxt :icon/farm :icon/server :comment/author) comment))))
 
 
 (q/defcomponent Comment
-  [{:keys [author authorname permalink datecreate content] :as comment}]
+  [comment]
   (d/li {:className "comment"}
     (d/div {:className "avatar"}
-      (d/img {:src (flickr-avatar comment)}))
+      (d/img {:src (comment-avatar comment)}))
 
     (d/div nil
-      (d/a {:href (str "http://flickr.com/photos/" author)} authorname)
-      (d/a {:href permalink :className "anchor"} (ui/date datecreate))
+      (d/a {:href (str "http://flickr.com/photos/"
+                    (or (:comment/path-alias comment) (:comment/author comment)))}
+        (:comment/author-name comment))
+      (d/a {:href (:comment/link comment) :className "anchor"}
+        (ui/date (:comment/date comment)))
       (d/div {:className "content"
-              :dangerouslySetInnerHTML (js-obj "__html" content)}))))
+              :dangerouslySetInnerHTML (js-obj "__html" (:content comment))}))))
 
 (q/defcomponent CommentList
   [{:keys [state comments]}]
