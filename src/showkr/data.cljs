@@ -14,6 +14,10 @@
   (atom {:target nil
          :path nil}))
 
+(let [count (atom 0)]
+  (defn temp-id []
+    (swap! count dec)))
+
 ;; datascript stuff
 
 (defonce db (db/create-conn
@@ -44,9 +48,24 @@
     (qe q db)))
 
 (defn transact->id! [db entity]
-  (let [tempid (:db/id entity)
+  (let [eid (:db/id entity)
         tx (db/transact! db [entity])]
-    (get (:tempids tx) tempid)))
+    (if (pos? eid)
+      eid
+      (get (:tempids tx) eid))))
+
+;;; helpers
+
+(defn old? [entity]
+  (> (- (.getTime (js/Date.))
+       (or (:showkr/date entity) 0))
+    *old-threshold*))
+
+(defn parse-date [d]
+  (-> d (js/parseInt 10) (* 1000) (js/Date.)))
+
+(defn now []
+  (.getTime (js/Date.)))
 
 ;;; api utils
 
@@ -70,26 +89,19 @@
             (db/transact! db [[:db/add db-id :showkr/state :failed]])))))))
 
 (defn flickr-fetch [db attrmap payload cb]
-  (when-not (by-attr @db attrmap)
-    (let [db-id (transact->id! db
-                  (assoc attrmap :db/id -1 :showkr/state :waiting))]
-      (-flickr-fetch db db-id payload cb))))
-
-;;; helpers
-
-(defn old? [data]
-  (> (- (.getTime (js/Date.))
-       (or (-> data meta :date) 0))
-    *old-threshold*))
-
-(defn parse-date [d]
-  (-> d (js/parseInt 10) (* 1000) (js/Date.)))
+  (let [entity (by-attr @db attrmap)]
+    (when (or (nil? entity) (old? entity))
+      (let [db-id (transact->id! db (assoc attrmap
+                                      :showkr/state :waiting
+                                      :db/id (or (:db/id entity) -1)))]
+        (-flickr-fetch db db-id payload cb)))))
 
 ;;; converters
 
 (defn set->local [db-id set]
   {:db/id db-id
    :showkr/state :fetched
+   :showkr/date (now)
    :set/id (set :id)
 
    :set/pages (set :pages)
@@ -103,9 +115,10 @@
    :title (set :title)
    :description (set :description)})
 
-(defn photo->local [set-id idx photo]
-  {:db/id (- -1 idx)
+(defn photo->local [set-id db-id idx photo]
+  {:db/id db-id
    :showkr/state :fetched
+   :showkr/date (now)
    :photo/order idx
    :photo/id (photo :id)
    :photo/set [set-id]
@@ -120,9 +133,10 @@
    :title (photo :title)
    :description (-> photo :description :_content)})
 
-(defn comment->local [photo-id idx comment]
-  {:db/id (- -1 idx)
+(defn comment->local [photo-id db-id comment]
+  {:db/id db-id
    :showkr/state :fetched
+   :showkr/date (now)
    :comment/order idx
    :comment/id (comment :id)
    :comment/photo photo-id
@@ -141,13 +155,15 @@
 (defn user->local [db-id user]
   {:db/id db-id
    :showkr/state :fetched
+   :showkr/date (now)
    :user/id (user :id)
 
    :user/name (-> user :username :_content)})
 
-(defn user-set->local [user-id idx set]
-  {:db/id (- -1 idx)
+(defn user-set->local [user-id db-id set]
+  {:db/id db-id
    :showkr/state :fetched
+   :showkr/date (now)
    :userset/user user-id
    :userset/id (set :id)
 
@@ -165,19 +181,35 @@
 ;;; data->db
 
 (defn store-set! [db db-id set]
-  (db/transact! db (map-indexed (partial photo->local db-id) (:photo set)))
+  (db/transact! db
+    (for [[photo idx] (map vector (:photo set) (range))]
+      (photo->local
+        db-id
+        (or (:db/id (by-attr @db {:photo/id (:id photo)})) (temp-id))
+        idx
+        photo)))
   (db/transact! db [(set->local db-id set)]))
 
 (defn store-comments! [db photo comments]
   (db/transact! db [[:db/add (:db/id photo) :photo/comment-state :fetched]])
   (when comments
-    (db/transact! db (map-indexed (partial comment->local (:db/id photo)) comments))))
+    (db/transact! db
+      (for [comment comments]
+        (comment->local
+          (:db/id photo)
+          (or (:db/id (by-attr @db {:comment/id (:id comment)})) (temp-id))
+          comment)))))
 
 (defn store-user! [db db-id user]
   (db/transact! db [(user->local db-id user)]))
 
 (defn store-user-sets! [db user sets]
-  (db/transact! db (map-indexed (partial user-set->local (:db/id user)) sets)))
+  (db/transact! db
+    (for [set sets]
+      (user-set->local
+        (:db/id user)
+        (or (:db/id (by-attr @db {:userset/id (:id set)})) (temp-id))
+        set))))
 
 ;;; A-la flux or something, call it and data will appear
 

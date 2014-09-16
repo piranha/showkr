@@ -91,18 +91,18 @@
                             :onChange #(setter :user (.. % -target -value))}})
 
         (d/div {:className "control-group"}
-          (let [users (db/q '[:find ?id ?name (count ?set)
-                              :where [?e :user/id ?id]
+          (let [users (db/q '[:find ?login ?name (count ?set)
+                              :where [?e :user/login ?login]
                                      [?e :user/name ?name]
                                      [?set :userset/user ?e]] db)]
             (if-not (empty? users)
               (d/div {:className "controls"}
                 "Or browse someone from your history: "
                 (apply d/ul nil
-                  (for [[id name set-count] users]
+                  (for [[login name set-count] users]
                     (when (pos? set-count)
                       (d/li nil
-                        (d/a {:href (str "#user/" id)} name)))))))))))
+                        (d/a {:href (str "#user/" login)} name)))))))))))
 
     (d/div {:className "form-actions"}
       (d/input {:type "submit"

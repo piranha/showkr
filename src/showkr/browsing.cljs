@@ -35,8 +35,9 @@
             (d/h1 nil
               "Sets of "
               (d/a {:href (str "https://flickr.com/photos/" login)} (:user/name user))))
-          (for [set (:userset/_user user)]
-            (Set set)))
+          (map Set (->> (:userset/_user user)
+                     (sort-by :date/create)
+                     reverse)))
 
         :waiting
         (ui/spinner)
