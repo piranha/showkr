@@ -1,8 +1,8 @@
 (ns showkr
-  (:require [cljs.reader :refer [read-string]]
-
+  (:require [cljs.reader :refer [read-string *tag-table*]]
             [quiescent :as q :include-macros true]
             [quiescent.dom :as d]
+            [datascript :as db]
 
             [showkr.data :as data]
             [showkr.utils :refer [get-route]]
@@ -40,8 +40,8 @@
 
     ;; kick off rendering
     (when-let [stored (.getItem js/window.localStorage "db")]
-      (binding [cljs.reader/*tag-table* (atom {"datascript/DB" db/db-from-reader})]
-        (reset! data/db (cljs.reader/read-string stored))))
+      (swap! *tag-table* assoc "datascript/DB" db/db-from-reader)
+      (reset! data/db (read-string stored)))
     (swap! data/opts merge
       {:target id :path (get-route)}
       (or opts {}))))

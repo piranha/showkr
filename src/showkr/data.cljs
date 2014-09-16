@@ -20,7 +20,8 @@
   {:photo/set     {:db/cardinality :db.cardinality/many
                    :db/valueType :db.type/ref}
    :comment/photo {:db/valueType :db.type/ref}
-   :set/user      {:db/valueType :db.type/ref}}))
+   :set/user      {:db/valueType :db.type/ref}
+   :userset/user  {:db/valueType :db.type/ref}}))
 
 ;; (defonce prr (atom false))
 ;; (db/listen! db :test #(when @prr (js/console.log (pr-str (:tx-data %)))))
