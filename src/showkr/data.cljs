@@ -10,12 +10,9 @@
 
 (def ^:dynamic *old-threshold* (* 1000 60 60 2)) ;; 2 hours
 
-(defonce world
-  (atom {:opts {:target nil
-                :path nil}
-         :data {:form {}
-                :sets {}
-                :users {}}}))
+(defonce opts
+  (atom {:target nil
+         :path nil}))
 
 ;; datascript stuff
 

@@ -4,7 +4,6 @@
             [quiescent :as q :include-macros true]
             [quiescent.dom :as d]
             [keybind :as key]
-            [datascript :as db]
 
             [showkr.utils :as u :refer-macros [p]]
             [showkr.data :as data]

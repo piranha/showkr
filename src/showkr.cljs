@@ -10,10 +10,9 @@
 
 (def ^:private render-queued false)
 (defn ^:private actually-render []
-  (js/console.log "rendering" #_ (clj->js @data/world))
   (set! render-queued false)
-  (q/render (Root (assoc @data/world :db @data/db))
-    (.getElementById js/document (-> @data/world :opts :target))))
+  (q/render (Root {:opts @data/opts :db @data/db})
+    (.getElementById js/document (:target @data/opts))))
 
 (defn render []
   (when-not render-queued
@@ -26,7 +25,7 @@
   (let [opts (js->clj opts :keywordize-keys true)]
 
     ;; listen for data changes
-    (add-watch data/world ::render render)
+    (add-watch data/opts ::render render)
     (add-watch data/db ::render render)
 
     #_(add-watch data/world ::store
@@ -38,14 +37,10 @@
     (.addEventListener js/window "hashchange"
       #(let [path (get-route)
              path (if (empty? path) (:path opts "") path)]
-         (swap! data/world assoc-in [:opts :path] path)))
+         (swap! data/opts assoc :path path)))
 
     ;; kick off rendering
     (let [stored (.getItem js/window.localStorage "data")]
-      (swap! data/world
-        #(-> %
-           (update-in [:data] merge
-             (read-string (or stored "nil")))
-           (update-in [:opts] merge
-             {:target id :path (get-route)}
-             (or opts {})))))))
+      (swap! data/opts merge
+        {:target id :path (get-route)}
+        (or opts {})))))

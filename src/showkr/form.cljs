@@ -21,7 +21,7 @@
           (d/input (assoc input :id id)))))))
 
 (q/defcomponent Form
-  [{:keys [form] :as data} setter]
+  [{:keys [form db]} setter]
   (d/form {:className "form-horizontal"
            :onSubmit (fn [e]
                        (.preventDefault e)
