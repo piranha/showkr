@@ -8,18 +8,18 @@
             [showkr.viewing :refer [Set]]
             [showkr.browsing :refer [User]]))
 
-(defn get-form [db name]
-  (let [form-id (-> (db/transact! db [{:db/id -1 :form/data {} :form/name name}])
-                  :tempids
-                  (get -1))
+(defn simple-dict [db attr]
+  (let [eid (-> (db/transact! db [{:db/id -1 attr {}}])
+              :tempids
+              (get -1))
         getter (fn []
-                 (:form/data (db/entity @db form-id)))]
+                 (attr (db/entity @db eid)))]
     [getter
      (fn setter
-       ([v] (db/transact! db [[:db/add form-id :form/data v]]))
+       ([v] (db/transact! db [[:db/add eid attr v]]))
        ([k v] (setter (assoc (getter) k v))))]))
 
-(let [[getter setter] (get-form data/db :main-form)]
+(let [[getter setter] (simple-dict data/db :form/data)]
   (q/defcomponent Root
     [{db :db, {:keys [path hide-title]} :opts}]
     (cond
