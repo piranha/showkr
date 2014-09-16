@@ -9,9 +9,8 @@
   (d/i {:className (str "icon-" name)}))
 
 (defn date [date]
-  (let [d (js/Date. (* (js/parseInt date 10) 1000))]
-    (d/time {:dateTime (.toISOString d)}
-      (str (.getDate d) " " (get MONTHS (.getMonth d)) " " (.getFullYear d)))))
+  (d/time {:dateTime (.toISOString date)}
+    (str (.getDate date) " " (get MONTHS (.getMonth date)) " " (.getFullYear date))))
 
 (defn spinner []
   (d/img {:src "spinner.gif"}))

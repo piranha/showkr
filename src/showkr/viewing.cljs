@@ -5,7 +5,7 @@
             [quiescent.dom :as d]
             [keybind :as key]
 
-            [showkr.utils :refer-macros [p]]
+            [showkr.utils :as u :refer-macros [p]]
             [showkr.data :as data]
             [showkr.ui :as ui]))
 
@@ -19,38 +19,46 @@
 ;; -  medium, 500 on longest side
 ;; z  medium 640, 640 on longest side
 ;; b  large, 1024 on longest side*
-(let [sizes {:small "m" :medium "z" :big "b"}]
-  (defn photo-url [{:keys [farm server id secret] :as photo} size-name]
-    (let [size (size-name sizes)]
-      (str "http://farm" farm ".staticflickr.com/" server
-           "/" id "_" secret "_" size ".jpg"))))
+(let [sizes {:small "m" :medium "z" :big "b"}
+      prop-fn (juxt :flickr/farm :flickr/server
+                (some-fn :photo/id :set/primary) :photo/secret)]
+  (defn photo-url [photo size-name]
+    (apply u/fmt "http://farm%s.staticflickr.com/%s/%s_%s_%s.jpg"
+      (-> photo
+        prop-fn
+        (conj (size-name sizes))))))
 
-(defn flickr-url [{:keys [id set-id pathalias owner] :as photo}]
-  (str "http://www.flickr.com/photos/" (or pathalias owner)
-       "/" id "/in/set-" set-id "/"))
+(defn flickr-url [photo set-id]
+  (u/fmt "http://www.flickr.com/photos/%s/%s/in/set-%s/"
+    (or (:photo/path-alias photo) (-> photo :photo/set first :owner))
+    (:photo/id photo)
+    set-id))
 
-(defn flickr-avatar [{:keys [author iconfarm iconserver] :as comment}]
-  (if (= iconserver "0")
+(defn comment-avatar [comment]
+  (if (= (:icon/server comment) "0")
     "http://www.flickr.com/images/buddyicon.jpg"
-    (str "http://farm" iconfarm ".static.flickr.com/" iconserver
-         "/buddyicons/" author ".jpg")))
+    (apply u/fmt "http://farm%s.static.flickr.com/%s/buddyicons/%s.jpg"
+      ((juxt :flickr/farm :flickr/server :comment/author) comment))))
 
 
 (q/defcomponent Comment
-  [{:keys [author authorname permalink datecreate _content] :as comment}]
+  [comment]
   (d/li {:className "comment"}
     (d/div {:className "avatar"}
-      (d/img {:src (flickr-avatar comment)}))
+      (d/img {:src (comment-avatar comment)}))
 
     (d/div nil
-      (d/a {:href (str "http://flickr.com/photos/" author)} authorname)
-      (d/a {:href permalink :className "anchor"} (ui/date datecreate))
+      (d/a {:href (str "http://flickr.com/photos/"
+                    (or (:comment/path-alias comment) (:comment/author comment)))}
+        (:comment/author-name comment))
+      (d/a {:href (:comment/link comment) :className "anchor"}
+        (ui/date (:date/create comment)))
       (d/div {:className "content"
-              :dangerouslySetInnerHTML (js-obj "__html" _content)}))))
+              :dangerouslySetInnerHTML (js-obj "__html" (:content comment))}))))
 
 (q/defcomponent CommentList
-  [comments]
-  (condp = (:state (meta comments))
+  [{:keys [state comments]}]
+  (case state
     nil
     (d/div {:className "span4 comments"})
 
@@ -60,37 +68,42 @@
     :fetched
     (d/div {:className "span4 comments"}
       (apply d/ul {:className "comments"}
-        (for [comment (:comment comments)]
+        (for [comment (sort-by :comment/order comments)]
           (Comment comment)))
       (d/ul {:className "pager"}))))
 
 (q/defcomponent Photo
-  [{:keys [idx id scroll-id set-id title description] :as photo}]
-  (let [upd (fn [node]
-              (data/fetch-comments set-id idx)
-              (if (= id scroll-id)
+  [{:keys [db photo scroll-id set-id]}]
+  (let [comments (:comment/_photo photo)
+        upd (fn [node]
+              (data/fetch-comments photo)
+              (if (= (:photo/id photo) scroll-id)
                 (scroll-to node)))]
     (q/wrapper
       (d/div nil
-        (d/h3 nil (str (inc idx) ". " title " ")
-          (d/a {:className "anchor" :href (str "#" set-id "/" id)} "#"))
+        (d/h3 nil (str (inc (:photo/order photo)) ". " (:title photo) " ")
+          (d/a {:className "anchor"
+                :href (u/fmt "#%s/%s" set-id (:photo/id photo))} "#"))
 
-        (d/small {:rel "description"} (:_content description))
+        (d/small {:rel "description"} (:description photo))
+
         (d/div {:className "row"}
           (d/div {:className "span8"}
-            (d/a {:href (flickr-url photo)}
+            (d/a {:href (flickr-url photo set-id)}
               (d/img {:src (photo-url photo :medium)})))
-          (CommentList (:comments photo))))
+          (when comments
+            (CommentList {:state (:photo/comment-state photo)
+                          :comments comments}))))
       :onMount upd
       :onUpdate upd)))
 
-(defn bind-controls! [set current]
-  (key/bind! "j" ::next #(data/watch-next set current))
-  (key/bind! "down" ::next #(data/watch-next set current))
-  (key/bind! "space" ::next #(data/watch-next set current))
-  (key/bind! "k" ::prev #(data/watch-prev set current))
-  (key/bind! "up" ::prev #(data/watch-prev set current))
-  (key/bind! "shift-space" ::prev #(data/watch-prev set current)))
+(defn bind-controls! [set-id current-id]
+  (key/bind! "j" ::next #(data/watch-next set-id current-id))
+  (key/bind! "down" ::next #(data/watch-next set-id current-id))
+  (key/bind! "space" ::next #(data/watch-next set-id current-id))
+  (key/bind! "k" ::prev #(data/watch-prev set-id current-id))
+  (key/bind! "up" ::prev #(data/watch-prev set-id current-id))
+  (key/bind! "shift-space" ::prev #(data/watch-prev set-id current-id)))
 
 (defn unbind-controls! []
   (key/unbind! "j" ::next)
@@ -101,37 +114,37 @@
   (key/unbind! "shift-space" ::prev))
 
 (q/defcomponent Set
-  [{:keys [id set scroll-id]}]
-  (q/wrapper
-    (condp = (-> set meta :state)
-      :fetched
-      (apply d/div nil
-        (if (:title set)
-          (d/h1 nil
-            (d/span {:rel "title"} (:title set))))
-        (d/small {:rel "description"} (:description set))
+  [{:keys [db id scroll-id]}]
+  (let [set (data/by-attr db {:set/id id})
+        upd (fn []
+              (data/fetch-set id)
+              (bind-controls! id scroll-id))]
 
-        (map-indexed
-          #(Photo (assoc %2 :idx %1
-                         :set-id id
-                         :scroll-id scroll-id
-                         :owner (:owner set)))
-          (:photo set)))
+    (q/wrapper
+      (case (:showkr/state set)
+        :fetched
+        (apply d/div nil
+          (if (:title set)
+            (d/h1 nil
+              (d/span {:rel "title"} (:title set))))
+          (d/small {:rel "description"} (:description set))
 
-      :waiting
-      (ui/spinner)
+          (map
+            #(Photo {:photo %
+                     :db db
+                     :set-id id
+                     :scroll-id scroll-id})
+            (sort-by :photo/order (:photo/_set set))))
 
-      (d/div {:className "alert alert-error"}
-        "It seems that set "
-        (d/b nil id)
-        " does not exist. Go to "
-        (d/a {:href "#"} "index page.")))
+        :waiting
+        (ui/spinner)
 
-    :onMount (fn [node]
-               (data/fetch-set id)
-               (bind-controls! set scroll-id))
-    :onUpdate (fn [node]
-                (data/fetch-set id)
-                (bind-controls! set scroll-id))
-    :onWillUnmount (fn []
-                     (unbind-controls!))))
+        (d/div {:className "alert alert-error"}
+          "It seems that set "
+          (d/b nil id)
+          " does not exist. Go to "
+          (d/a {:href "#"} "index page.")))
+
+      :onMount upd
+      :onUpdate upd
+      :onWillUnmount unbind-controls!)))

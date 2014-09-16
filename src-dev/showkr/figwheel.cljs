@@ -5,4 +5,4 @@
             [showkr :refer [render]]))
 
 (fw/watch-and-reload :jsload-callback
-  (fn [] (swap! data/world update :dev-reload not)))
+  (fn [] (swap! data/opts update :dev-reload not)))

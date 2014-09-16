@@ -1,7 +1,8 @@
 (ns showkr.data
   (:import [goog.net Jsonp])
 
-  (:require [showkr.utils :refer-macros [p]]))
+  (:require [datascript :as db]
+            [showkr.utils :refer-macros [p]]))
 
 (def URL "https://api.flickr.com/services/rest/")
 (def OPTS {:api_key "1606ff0ad63a3b5efeaa89443fe80704"
@@ -9,12 +10,64 @@
 
 (def ^:dynamic *old-threshold* (* 1000 60 60 2)) ;; 2 hours
 
-(defonce world
-  (atom {:opts {:target nil
-                :path nil}
-         :data {:form {}
-                :sets {}
-                :users {}}}))
+(defonce opts
+  (atom {:target nil
+         :path nil}))
+
+(let [count (atom 0)]
+  (defn temp-id []
+    (swap! count dec)))
+
+;; datascript stuff
+
+(defonce db (db/create-conn
+  {:photo/set     {:db/cardinality :db.cardinality/many
+                   :db/valueType :db.type/ref}
+   :comment/photo {:db/valueType :db.type/ref}
+   :set/user      {:db/valueType :db.type/ref}
+   :userset/user  {:db/valueType :db.type/ref}}))
+
+;; (defonce prr (atom false))
+;; (db/listen! db :test #(when @prr (js/console.log (pr-str (:tx-data %)))))
+
+(defn only
+  "Return the only item from a query result"
+  [query-result]
+  (assert (>= 1 (count query-result)))
+  (assert (>= 1 (count (first query-result))))
+  (ffirst query-result))
+
+(defn qe
+  "Returns the single entity returned by a query."
+  [q db & args]
+  (when-let [id (only (apply db/q q db args))]
+    (db/entity db id)))
+
+(defn by-attr [db attrmap]
+  (let [q {:find '[?e] :where (mapv #(apply vector '?e %) attrmap)}]
+    (qe q db)))
+
+(defn transact->id! [db entity]
+  (let [eid (:db/id entity)
+        tx (db/transact! db [entity])]
+    (if (pos? eid)
+      eid
+      (get (:tempids tx) eid))))
+
+;;; helpers
+
+(defn old? [entity]
+  (> (- (.getTime (js/Date.))
+       (or (:showkr/date entity) 0))
+    *old-threshold*))
+
+(defn parse-date [d]
+  (-> d (js/parseInt 10) (* 1000) (js/Date.)))
+
+(defn now []
+  (.getTime (js/Date.)))
+
+;;; api utils
 
 (defn- flickr-error [payload]
   (js/console.error "Error fetching data with parameters:" payload))
@@ -23,87 +76,201 @@
   (let [q (Jsonp. URL "jsoncallback")]
     (.send q (clj->js (merge OPTS payload)) callback flickr-error)))
 
-(defn old? [data]
-  (> (- (.getTime (js/Date.))
-       (or (-> data meta :date) 0))
-    *old-threshold*))
+(defn -flickr-fetch [db db-id payload cb]
+  (flickr-call payload
+    (fn [data]
+      (let [data (js->clj data :keywordize-keys true)]
+        (case (:stat data)
+          "ok"
+          (cb db-id data)
 
-(defn fetched? [data]
-  (= :fetched (:state (meta data))))
+          "fail"
+          (when db-id
+            (db/transact! db [[:db/add db-id :showkr/state :failed]])))))))
 
-(defn flickr-fetch [path attr payload & [cb]]
-  (let [data (get-in @world path)]
-    (when (empty? data)
-      ;(js/console.log (str (pr-str path) " is empty"))
-      (swap! world assoc-in path
-        ^{:state :waiting :date (.getTime (js/Date.))} {}))
-    (when (old? data)
-      ;(js/console.log (str (pr-str path) " is too old"))
-      (flickr-call payload
-        (fn [data]
-          (let [data (js->clj data :keywordize-keys true)]
-            (condp = (:stat data)
-              "ok"
-              ;; NOTE: I'm not exactly sure this is the best behavior, but for
-              ;; now it worked for me. I guess I need to think of better general
-              ;; layout. Probably I should put fetched data in another fetched
-              ;; data, but it's too convenient to render.
-              ;;
-              ;; FIXME: Maybe switch to DataScript and make joins and all the
-              ;; fun stuff?
-              (swap! world update-in path
-                #(with-meta (merge % (attr data)) {:state :fetched
-                                                   :date (.getTime (js/Date.))}))
+(defn flickr-fetch [db attrmap payload cb]
+  (let [entity (by-attr @db attrmap)]
+    (when (or (nil? entity) (old? entity))
+      (let [db-id (transact->id! db (assoc attrmap
+                                      :showkr/state :waiting
+                                      :db/id (or (:db/id entity) -1)))]
+        (-flickr-fetch db db-id payload cb)))))
 
-              "fail"
-              (swap! world assoc-in path
-                (if (>= (:code data) 100) ;; not user input fault
-                  nil
-                  (with-meta data
-                    {:state :failed}))))
-            (when cb (cb))))))))
+;;; converters
+
+(defn set->local [db-id set]
+  {:db/id db-id
+   :showkr/state :fetched
+   :showkr/date (now)
+   :set/id (set :id)
+
+   :set/pages (set :pages)
+   :set/page (set :page)
+   :set/per-page (set :per_page)
+   :set/total (set :total)
+
+   :set/primary (set :primary)
+   :set/owner (set :owner)
+
+   :title (set :title)
+   :description (set :description)})
+
+(defn photo->local [set-id db-id idx photo]
+  {:db/id db-id
+   :showkr/state :fetched
+   :showkr/date (now)
+   :photo/order idx
+   :photo/id (photo :id)
+   :photo/set [set-id]
+
+   :flickr/farm (photo :farm)
+   :flickr/server (photo :server)
+   :photo/secret (photo :secret)
+   :photo/original-secret (photo :originalsecret)
+   :photo/original-format (photo :originalformat)
+   :photo/path-alias (photo :pathalias)
+
+   :title (photo :title)
+   :description (-> photo :description :_content)})
+
+(defn comment->local [photo-id db-id comment]
+  {:db/id db-id
+   :showkr/state :fetched
+   :showkr/date (now)
+   :comment/order idx
+   :comment/id (comment :id)
+   :comment/photo photo-id
+
+   :flickr/farm (comment :iconfarm)
+   :flickr/server (comment :iconserver)
+   :date/create (-> comment :datecreate parse-date)
+   :comment/author (comment :author)
+   :comment/author-name (comment :authorname)
+   :comment/real-name (comment :realname)
+   :comment/path-alias (comment :path_alias)
+   :comment/link (comment :permalink)
+
+   :content (:_content comment)})
+
+(defn user->local [db-id user]
+  {:db/id db-id
+   :showkr/state :fetched
+   :showkr/date (now)
+   :user/id (user :id)
+
+   :user/name (-> user :username :_content)})
+
+(defn user-set->local [user-id db-id set]
+  {:db/id db-id
+   :showkr/state :fetched
+   :showkr/date (now)
+   :userset/user user-id
+   :userset/id (set :id)
+
+   :flickr/farm (set :farm)
+   :flickr/server (set :server)
+   :photo/secret (set :secret)
+   :date/update (-> set :date_update parse-date)
+   :date/create (-> set :date_create parse-date)
+   :set/primary (set :primary)
+   :set/total (-> set :photos (js/parseInt 10)) ; + (set :videos)?
+
+   :title (-> set :title :_content)
+   :description (-> set :description :_content)})
+
+;;; data->db
+
+(defn store-set! [db db-id set]
+  (db/transact! db
+    (for [[photo idx] (map vector (:photo set) (range))]
+      (photo->local
+        db-id
+        (or (:db/id (by-attr @db {:photo/id (:id photo)})) (temp-id))
+        idx
+        photo)))
+  (db/transact! db [(set->local db-id set)]))
+
+(defn store-comments! [db photo comments]
+  (db/transact! db [[:db/add (:db/id photo) :photo/comment-state :fetched]])
+  (when comments
+    (db/transact! db
+      (for [comment comments]
+        (comment->local
+          (:db/id photo)
+          (or (:db/id (by-attr @db {:comment/id (:id comment)})) (temp-id))
+          comment)))))
+
+(defn store-user! [db db-id user]
+  (db/transact! db [(user->local db-id user)]))
+
+(defn store-user-sets! [db user sets]
+  (db/transact! db
+    (for [set sets]
+      (user-set->local
+        (:db/id user)
+        (or (:db/id (by-attr @db {:userset/id (:id set)})) (temp-id))
+        set))))
 
 ;;; A-la flux or something, call it and data will appear
 
 (defn fetch-set [id]
-  (flickr-fetch [:data :sets id] :photoset
+  (flickr-fetch db {:set/id id}
     {:method "flickr.photosets.getPhotos"
      :photoset_id id
-     :extras "original_format,description,path_alias"}))
+     :extras "original_format,description,path_alias"}
+    (fn [db-id data]
+      (store-set! db db-id (:photoset data)))))
 
-(defn fetch-comments [set-id idx]
-  (when (fetched? (get-in @world [:data :sets set-id]))
-    (flickr-fetch [:data :sets set-id :photo idx :comments] :comments
+(defn fetch-comments [photo]
+  (when-not (:photo/comment-state photo)
+    (db/transact! db [[:db/add (:db/id photo) :photo/comment-state :waiting]])
+    (-flickr-fetch db nil
       {:method "flickr.photos.comments.getList"
-       :photo_id (get-in @world [:data :sets set-id :photo idx :id])})))
+       :photo_id (:photo/id photo)}
+      (fn [_ data]
+        (store-comments! db photo (-> data :comments :comment))))))
 
-(defn fetch-user-sets [username]
-  (let [user (get-in @world [:data :users username])]
-    (when (fetched? user)
-      (flickr-fetch [:data :users username :sets] :photosets
+(defn fetch-user-sets [login]
+  (let [user (by-attr @db {:user/login login})]
+    (when (= :fetched (:showkr/state user))
+      (-flickr-fetch db nil
         {:method "flickr.photosets.getList"
-         :user_id (:id user)}))))
+         :user_id (:user/id user)}
+        (fn [db-id data]
+          (store-user-sets! db user (-> data :photosets :photoset)))))))
 
-(defn fetch-user [username]
-  (flickr-fetch [:data :users username] :user
+(defn fetch-user [login]
+  (flickr-fetch db {:user/login login}
     {:method "flickr.urls.lookupUser"
-     :url (str "https://flickr.com/photos/" username)}
-    #(fetch-user-sets username)))
+     :url (str "https://flickr.com/photos/" login)}
+    (fn [db-id data]
+      (store-user! db db-id (:user data))
+      (fetch-user-sets login))))
 
 ;;; not sure this is the right place
 
-(defn watch-next [set photo-id]
-  (let [photos (:photo set)
-        next-photo (if-not photo-id
-                     (first photos)
-                     (second (drop-while #(not= (:id %) photo-id) photos)))]
-    (when next-photo
-      (set! js/location.hash (str "#" (:id set) "/" (:id next-photo))))))
+(def photo-order-q
+  '[:find ?order
+    :in $ ?set-id ?photo-id
+    :where
+    [?set :set/id ?set-id]
+    [?e :photo/id ?photo-id]
+    [?e :photo/set ?set]
+    [?e :photo/order ?order]])
 
-(defn watch-prev [set photo-id]
-  (when photo-id
-    (let [photos (:photo set)
-          prev-photo (-> (take-while #(not= (:id %) photo-id) photos)
-                       last)]
-      (when prev-photo
-        (set! js/location.hash (str "#" (:id set) "/" (:id prev-photo)))))))
+(def photo-by-order-q
+  '[:find ?e
+    :in $ ?set-id ?order
+    :where
+    [?set :set/id ?set-id]
+    [?e :photo/set ?set]
+    [?e :photo/order ?order]])
+
+(defn subseq-photo [dir-fn set-id photo-id]
+  (let [order (dir-fn (ffirst (db/q photo-order-q @db set-id photo-id)))
+        photo (qe photo-by-order-q @db set-id order)]
+    (when photo
+      (set! js/location.hash (str "#" set-id "/" (:photo/id photo))))))
+
+(def watch-next (partial subseq-photo (fnil inc -1)))
+(def watch-prev (partial subseq-photo dec))
