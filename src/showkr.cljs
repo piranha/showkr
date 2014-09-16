@@ -28,10 +28,9 @@
     (add-watch data/opts ::render render)
     (add-watch data/db ::render render)
 
-    #_(add-watch data/world ::store
+    (add-watch data/db ::store
       (fn []
-        (binding [*print-meta* true]
-          (.setItem js/window.localStorage "data" (pr-str (:data @data/world))))))
+        (.setItem js/window.localStorage "db" (pr-str @data/db))))
 
     ;; listen for path changes
     (.addEventListener js/window "hashchange"
@@ -40,7 +39,9 @@
          (swap! data/opts assoc :path path)))
 
     ;; kick off rendering
-    (let [stored (.getItem js/window.localStorage "data")]
-      (swap! data/opts merge
-        {:target id :path (get-route)}
-        (or opts {})))))
+    (when-let [stored (.getItem js/window.localStorage "db")]
+      (binding [cljs.reader/*tag-table* (atom {"datascript/DB" db/db-from-reader})]
+        (reset! data/db (cljs.reader/read-string stored))))
+    (swap! data/opts merge
+      {:target id :path (get-route)}
+      (or opts {}))))
