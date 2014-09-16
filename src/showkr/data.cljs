@@ -133,7 +133,7 @@
    :title (photo :title)
    :description (-> photo :description :_content)})
 
-(defn comment->local [photo-id db-id comment]
+(defn comment->local [photo-id db-id idx comment]
   {:db/id db-id
    :showkr/state :fetched
    :showkr/date (now)
@@ -194,10 +194,11 @@
   (db/transact! db [[:db/add (:db/id photo) :photo/comment-state :fetched]])
   (when comments
     (db/transact! db
-      (for [comment comments]
+      (for [[comment idx] (map vector comments (range))]
         (comment->local
           (:db/id photo)
           (or (:db/id (by-attr @db {:comment/id (:id comment)})) (temp-id))
+          idx
           comment)))))
 
 (defn store-user! [db db-id user]
