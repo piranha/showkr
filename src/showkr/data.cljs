@@ -47,7 +47,10 @@
   (let [q {:find '[?e] :where (mapv #(apply vector '?e %) attrmap)}]
     (qe q db)))
 
-(defn transact->id! [db entity]
+(defn eid-or-temp [db attrmap]
+  (or (:db/id (by-attr db attrmap)) (temp-id)))
+
+(defn transact->eid! [db entity]
   (let [eid (:db/id entity)
         tx (db/transact! db [entity])]
     (if (pos? eid)
@@ -91,7 +94,7 @@
 (defn flickr-fetch [db attrmap payload cb]
   (let [entity (by-attr @db attrmap)]
     (when (or (nil? entity) (old? entity))
-      (let [db-id (transact->id! db (assoc attrmap
+      (let [db-id (transact->eid! db (assoc attrmap
                                       :showkr/state :waiting
                                       :db/id (or (:db/id entity) -1)))]
         (-flickr-fetch db db-id payload cb)))))
@@ -178,8 +181,7 @@
       (-> photo
         (photo->local idx)
         (assoc :photo/set [db-id]
-               :db/id (or (:db/id (by-attr @db {:photo/id (:id photo)}))
-                        (temp-id))))))
+               :db/id     (eid-or-temp @db {:photo/id (:id photo)})))))
   (db/transact! db [(assoc (set->local set) :db/id db-id)]))
 
 (defn store-comments! [db photo comments]
@@ -190,8 +192,7 @@
         (-> comment
           (comment->local idx)
           (assoc :comment/photo (:db/id photo)
-                 :db/id (or (:db/id (by-attr @db {:comment/id (:id comment)}))
-                          (temp-id))))))))
+                 :db/id         (eid-or-temp @db {:comment/id (:id comment)})))))))
 
 (defn store-user! [db db-id user]
   (db/transact! db [(assoc (user->local user) :db/id db-id)]))
@@ -202,8 +203,7 @@
       (-> set
         user-set->local
         (assoc :userset/user (:db/id user)
-               :db/id (or (:db/id (by-attr @db {:userset/id (:id set)}))
-                        (temp-id)))))))
+               :db/id        (eid-or-temp @db {:userset/id (:id set)}))))))
 
 ;;; A-la flux or something, call it and data will appear
 
