@@ -6,14 +6,16 @@
             [lein-figwheel "0.1.3-SNAPSHOT"]
             [lein-npm "0.4.0"]]
 
-  :dependencies [[org.clojure/clojure "1.6.0"]
-                 [org.clojure/clojurescript "0.0-2342"]
+  :dependencies [[org.clojure/clojurescript "0.0-2342"]
                  [com.facebook/react "0.11.1"]
                  [quiescent "0.1.4"]
                  [datascript "0.4.1"]
-                 [keybind "0.1.0"]
-                 [medley "0.5.0" :exclusions [org.clojure/clojure]]
-                 [figwheel "0.1.3-SNAPSHOT"]]
+                 [keybind "0.1.0"]]
+
+  :profiles {:dev {:dependencies [[figwheel "0.1.3-SNAPSHOT" :exclusions [org.clojure/core.async]]
+                                  [medley "0.5.0" :exclusions [org.clojure/clojure]]
+                                  [org.clojure/clojure "1.6.0"]
+                                  [org.clojure/core.async "0.1.338.0-5c5012-alpha"]]}}
 
   :node-dependencies [[less "1.4.2"]]
 

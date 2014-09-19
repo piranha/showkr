@@ -45,7 +45,7 @@
       (when-not hide-title
         (d/footer nil
           (d/p {:className "pull-right"}
-            (str "Stats: db - " (count (pr-str db)) "b"))
+            (str "Stats: db size - " (count (:eavt db)) " datoms, " (count (pr-str db)) "b"))
           (d/p nil
             "© 2012-2014 "
             (d/a {:href "http://solovyov.net"} "Alexander Solovyov")))))))
