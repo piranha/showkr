@@ -9,11 +9,8 @@
             [showkr.browsing :refer [User]]))
 
 (defn simple-dict [db attr]
-  (let [eid (-> (db/transact! db [{:db/id -1 attr {}}])
-              :tempids
-              (get -1))
-        getter (fn []
-                 (attr (db/entity @db eid)))]
+  (let [eid (data/transact->eid! db {:db/id -1 attr {}})
+        getter #(attr (db/entity @db eid))]
     [getter
      (fn setter
        ([v] (db/transact! db [[:db/add eid attr v]]))
@@ -48,7 +45,7 @@
       (when-not hide-title
         (d/footer nil
           (d/p {:className "pull-right"}
-            (str "Stats: db size - " (count (pr-str db))))
+            (str "Stats: db - " (count (pr-str db)) "b"))
           (d/p nil
             "© 2012-2014 "
             (d/a {:href "http://solovyov.net"} "Alexander Solovyov")))))))
