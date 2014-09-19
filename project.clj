@@ -7,7 +7,7 @@
             [lein-npm "0.4.0"]]
 
   :dependencies [[org.clojure/clojure "1.6.0"]
-                 [org.clojure/clojurescript "0.0-2322"]
+                 [org.clojure/clojurescript "0.0-2342"]
                  [com.facebook/react "0.11.1"]
                  [quiescent "0.1.4"]
                  [datascript "0.4.0"]

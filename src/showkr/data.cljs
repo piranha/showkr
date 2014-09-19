@@ -98,9 +98,8 @@
 
 ;;; converters
 
-(defn set->local [db-id set]
-  {:db/id db-id
-   :showkr/state :fetched
+(defn set->local [set]
+  {:showkr/state :fetched
    :showkr/date (now)
    :set/id (set :id)
 
@@ -115,13 +114,11 @@
    :title (set :title)
    :description (set :description)})
 
-(defn photo->local [set-id db-id idx photo]
-  {:db/id db-id
-   :showkr/state :fetched
+(defn photo->local [photo idx]
+  {:showkr/state :fetched
    :showkr/date (now)
    :photo/order idx
    :photo/id (photo :id)
-   :photo/set [set-id]
 
    :flickr/farm (photo :farm)
    :flickr/server (photo :server)
@@ -133,13 +130,11 @@
    :title (photo :title)
    :description (-> photo :description :_content)})
 
-(defn comment->local [photo-id db-id idx comment]
-  {:db/id db-id
-   :showkr/state :fetched
+(defn comment->local [comment idx]
+  {:showkr/state :fetched
    :showkr/date (now)
    :comment/order idx
    :comment/id (comment :id)
-   :comment/photo photo-id
 
    :flickr/farm (comment :iconfarm)
    :flickr/server (comment :iconserver)
@@ -152,19 +147,16 @@
 
    :content (:_content comment)})
 
-(defn user->local [db-id user]
-  {:db/id db-id
-   :showkr/state :fetched
+(defn user->local [user]
+  {:showkr/state :fetched
    :showkr/date (now)
    :user/id (user :id)
 
    :user/name (-> user :username :_content)})
 
-(defn user-set->local [user-id db-id set]
-  {:db/id db-id
-   :showkr/state :fetched
+(defn user-set->local [set]
+  {:showkr/state :fetched
    :showkr/date (now)
-   :userset/user user-id
    :userset/id (set :id)
 
    :flickr/farm (set :farm)
@@ -183,34 +175,35 @@
 (defn store-set! [db db-id set]
   (db/transact! db
     (for [[photo idx] (map vector (:photo set) (range))]
-      (photo->local
-        db-id
-        (or (:db/id (by-attr @db {:photo/id (:id photo)})) (temp-id))
-        idx
-        photo)))
-  (db/transact! db [(set->local db-id set)]))
+      (-> photo
+        (photo->local idx)
+        (assoc :photo/set [db-id]
+               :db/id (or (:db/id (by-attr @db {:photo/id (:id photo)}))
+                        (temp-id))))))
+  (db/transact! db [(assoc (set->local set) :db/id db-id)]))
 
 (defn store-comments! [db photo comments]
   (db/transact! db [[:db/add (:db/id photo) :photo/comment-state :fetched]])
   (when comments
     (db/transact! db
       (for [[comment idx] (map vector comments (range))]
-        (comment->local
-          (:db/id photo)
-          (or (:db/id (by-attr @db {:comment/id (:id comment)})) (temp-id))
-          idx
-          comment)))))
+        (-> comment
+          (comment->local idx)
+          (assoc :comment/photo (:db/id photo)
+                 :db/id (or (:db/id (by-attr @db {:comment/id (:id comment)}))
+                          (temp-id))))))))
 
 (defn store-user! [db db-id user]
-  (db/transact! db [(user->local db-id user)]))
+  (db/transact! db [(assoc (user->local user) :db/id db-id)]))
 
 (defn store-user-sets! [db user sets]
   (db/transact! db
     (for [set sets]
-      (user-set->local
-        (:db/id user)
-        (or (:db/id (by-attr @db {:userset/id (:id set)})) (temp-id))
-        set))))
+      (-> set
+        user-set->local
+        (assoc :userset/user (:db/id user)
+               :db/id (or (:db/id (by-attr @db {:userset/id (:id set)}))
+                        (temp-id)))))))
 
 ;;; A-la flux or something, call it and data will appear
 
