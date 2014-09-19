@@ -167,8 +167,9 @@
    :photo/secret (set :secret)
    :date/update (-> set :date_update parse-date)
    :date/create (-> set :date_create parse-date)
-   :set/primary (set :primary)
+
    :set/total (-> set :photos (js/parseInt 10)) ; + (set :videos)?
+   :set/primary (set :primary)
 
    :title (-> set :title :_content)
    :description (-> set :description :_content)})
