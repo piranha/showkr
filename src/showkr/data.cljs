@@ -19,6 +19,15 @@
 
 ;; datascript stuff
 
+(defn -q [q & args]
+  (if (:debug @opts)
+    (let [key (str q)
+          _   (.time js/console key)
+          res (apply db/q q args)
+          _   (.timeEnd js/console key)]
+      res)
+    (apply db/q q args)))
+
 (defonce db (db/create-conn
   {:photo/set     {:db/cardinality :db.cardinality/many
                    :db/valueType :db.type/ref}
@@ -39,7 +48,7 @@
 (defn qe
   "Returns the single entity returned by a query."
   [q db & args]
-  (when-let [id (only (apply db/q q db args))]
+  (when-let [id (only (apply -q q db args))]
     (db/entity db id)))
 
 (defn by-attr [db attrmap]
@@ -261,7 +270,7 @@
     [?e :photo/order ?order]])
 
 (defn subseq-photo [dir-fn set-id photo-id]
-  (let [order (dir-fn (ffirst (db/q photo-order-q @db set-id photo-id)))
+  (let [order (dir-fn (ffirst (-q photo-order-q @db set-id photo-id)))
         photo (qe photo-by-order-q @db set-id order)]
     (when photo
       (set! js/location.hash (str "#" set-id "/" (:photo/id photo))))))

@@ -11,8 +11,13 @@
 (def ^:private render-queued false)
 (defn ^:private actually-render []
   (set! render-queued false)
-  (q/render (Root {:opts @data/opts :db @data/db})
-    (.getElementById js/document (:target @data/opts))))
+  (when (:debug @data/opts)
+    (js/console.time "render"))
+  (q/render (Root {:opts @data/opts :db @data/db}
+              #(swap! data/opts update-in [:debug] not))
+    (.getElementById js/document (:target @data/opts)))
+  (when (:debug @data/opts)
+    (js/console.timeEnd "render")))
 
 (defn render []
   (when-not render-queued

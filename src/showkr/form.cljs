@@ -3,7 +3,8 @@
             [quiescent.dom :as d]
             [datascript :as db]
 
-            [showkr.ui :as ui]))
+            [showkr.ui :as ui]
+            [showkr.data :as data]))
 
 (let [count (atom 0)]
   (defn unique-id []
@@ -63,9 +64,9 @@
                             :onChange #(setter :set (.. % -target -value))}})
 
         (d/div {:className "control-group"}
-          (let [sets (db/q '[:find ?id ?title
-                             :where [?e :set/id ?id]
-                                    [?e :title ?title]] db)]
+          (let [sets (data/-q '[:find ?id ?title
+                                :where [?e :set/id ?id]
+                                       [?e :title ?title]] db)]
             (if-not (empty? sets)
 
               (d/div {:className "controls"}
@@ -91,10 +92,10 @@
                             :onChange #(setter :user (.. % -target -value))}})
 
         (d/div {:className "control-group"}
-          (let [users (db/q '[:find ?login ?name (count ?set)
-                              :where [?e :user/login ?login]
-                                     [?e :user/name ?name]
-                                     [?set :userset/user ?e]] db)]
+          (let [users (data/-q '[:find ?login ?name (count ?set)
+                                 :where [?e :user/login ?login]
+                                        [?e :user/name ?name]
+                                        [?set :userset/user ?e]] db)]
             (if-not (empty? users)
               (d/div {:className "controls"}
                 "Or browse someone from your history: "

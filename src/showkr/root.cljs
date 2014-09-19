@@ -18,7 +18,8 @@
 
 (let [[getter setter] (simple-dict data/db :form/data)]
   (q/defcomponent Root
-    [{db :db, {:keys [path hide-title]} :opts}]
+    [{db :db, {:keys [path hide-title debug]} :opts}
+     toggle-debug]
     (d/div {:className "container"}
       (when-not hide-title
         (d/header nil
@@ -45,7 +46,14 @@
       (when-not hide-title
         (d/footer nil
           (d/p {:className "pull-right"}
-            (str "Stats: db size - " (count (:eavt db)) " datoms, " (count (pr-str db)) "b"))
+            (when debug
+              (str "Stats: db size - "
+                (count (:eavt db)) " datoms, "
+                (count (pr-str db)) "b"))
+            (d/a {:href "#"
+                  :onClick #(do (.preventDefault %)
+                                (toggle-debug))}
+              " Toggle debug"))
           (d/p nil
             "© 2012-2014 "
             (d/a {:href "http://solovyov.net"} "Alexander Solovyov")))))))
