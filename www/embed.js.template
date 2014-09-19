@@ -1,8 +1,6 @@
 <link rel="stylesheet" href="http://showkr.org/namespaced.css">
 <script src="http://showkr.solovyov.net/showkr.min.js"></script>
-<div class="showkr"><div class="container"><div class="row">
-  <div id="{{id}}" class="span12"></div>
-</div></div></div>
+<div class="showkr" id="{{id}}"></div>
 <script>
   var els = document.getElementsByTagName("script"), el;
   for (var i = 0; i < els.length; i++) {
