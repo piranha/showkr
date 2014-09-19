@@ -1,8 +1,7 @@
 (ns showkr.data
   (:import [goog.net Jsonp])
 
-  (:require [datascript :as db]
-            [showkr.utils :refer-macros [p]]))
+  (:require [datascript :as db]))
 
 (def URL "https://api.flickr.com/services/rest/")
 (def OPTS {:api_key "1606ff0ad63a3b5efeaa89443fe80704"

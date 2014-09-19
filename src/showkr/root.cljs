@@ -22,21 +22,33 @@
 (let [[getter setter] (simple-dict data/db :form/data)]
   (q/defcomponent Root
     [{db :db, {:keys [path hide-title]} :opts}]
-    (cond
-      (= path "about")
-      (d/div nil "about")
+    (d/div {:className "container"}
+      (when-not hide-title
+        (d/header nil
+          (d/h1 nil (d/a {:href "#"} "Showkr"))))
 
-      (re-matches #"^user/.*" path)
-      (let [login (.slice path 5)]
-        (User {:db db
-               :login login
-               :hide-title hide-title}))
+      (d/div {:className "row"}
+        (d/div {:className "span12"}
+          (cond
+            (re-matches #"^user/.*" path)
+            (let [login (.slice path 5)]
+              (User {:db db
+                     :login login
+                     :hide-title hide-title}))
 
-      (re-matches #"^\d+(/(\d+)?)?$" path)
-      (let [[set-id scroll-id] (.split path "/")]
-        (Set {:db db
-              :id set-id
-              :scroll-id scroll-id}))
+            (re-matches #"^\d+(/(\d+)?)?$" path)
+            (let [[set-id scroll-id] (.split path "/")]
+              (Set {:db db
+                    :id set-id
+                    :scroll-id scroll-id}))
 
-      :else
-      (Form {:form (getter) :db db} setter))))
+            :else
+            (Form {:form (getter) :db db} setter))))
+
+      (when-not hide-title
+        (d/footer nil
+          (d/p {:className "pull-right"}
+            (str "Stats: db size - " (count (pr-str db))))
+          (d/p nil
+            "© 2012-2014 "
+            (d/a {:href "http://solovyov.net"} "Alexander Solovyov")))))))
