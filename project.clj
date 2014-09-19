@@ -10,7 +10,7 @@
                  [org.clojure/clojurescript "0.0-2342"]
                  [com.facebook/react "0.11.1"]
                  [quiescent "0.1.4"]
-                 [datascript "0.4.0"]
+                 [datascript "0.4.1"]
                  [keybind "0.1.0"]
                  [medley "0.5.0" :exclusions [org.clojure/clojure]]
                  [figwheel "0.1.3-SNAPSHOT"]]
