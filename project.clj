@@ -15,7 +15,7 @@
   :profiles {:dev {:dependencies [[figwheel "0.1.3-SNAPSHOT" :exclusions [org.clojure/core.async]]
                                   [medley "0.5.0" :exclusions [org.clojure/clojure]]
                                   [org.clojure/clojure "1.6.0"]
-                                  [org.clojure/core.async "0.1.338.0-5c5012-alpha"]]}}
+                                  [org.clojure/core.async "0.1.346.0-17112a-alpha"]]}}
 
   :node-dependencies [[less "1.4.2"]]
 
