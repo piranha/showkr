@@ -12,3 +12,4 @@ pom.xml
 /resources/public/style.css
 /www/
 /node_modules/
+/.boot/

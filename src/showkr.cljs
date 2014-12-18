@@ -26,6 +26,9 @@
       (js/requestAnimationFrame actually-render)
       (js/setTimeout actually-render 16))))
 
+(defn trigger-render []
+  (swap! data/opts update :dev-reload not))
+
 (defn ^:export main [id opts]
   (let [opts (js->clj opts :keywordize-keys true)]
 
