@@ -5,8 +5,9 @@
   :resource-paths #{"resources/public"}
   :dependencies '[[adzerk/boot-cljs "0.0-2411-5" :scope "test"]
                   [adzerk/boot-cljs-repl "0.1.7" :scope "test"]
-                  [adzerk/boot-reload "0.2.0" :scope "test"]
+                  [adzerk/boot-reload "0.2.1" :scope "test"]
                   [pandeiro/boot-http "0.3.0" :scope "test"]
+
                   [com.facebook/react "0.11.1"]
                   [quiescent "0.1.4"]
                   [datascript "0.7.1"]
@@ -22,15 +23,17 @@
   '[adzerk.boot-reload :refer [reload]]
   '[pandeiro.http :refer [serve]])
 
-;; (deftask dev
-;;   "Development environment"
-;;   []
-;;   (comp (watch)
-;;         (cljs-repl)
-;;         (cljs :source-map true
-;;               :optimizations :none
-;;               :unified true)
-;;         (reload :on-jsload 'showkr/trigger-render)))
+(deftask dev
+  "Development environment"
+  []
+  (comp (serve :dir "target")
+        (watch)
+        (speak)
+        (reload :on-jsload 'showkr/trigger-render)
+        (cljs-repl)
+        (cljs :source-map true
+              :optimizations :none
+              :unified-mode true)))
 
 ;; (deftask prod
 ;;   "Production version"

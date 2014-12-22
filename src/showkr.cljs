@@ -27,6 +27,7 @@
       (js/setTimeout actually-render 16))))
 
 (defn trigger-render []
+  (js/console.log "reload dammit")
   (swap! data/opts update :dev-reload not))
 
 (defn ^:export main [id opts]
