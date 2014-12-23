@@ -6,10 +6,10 @@ STATIC = $(SRC_STATIC:resources/public/%=www/%)
 all: css fig
 
 fig:
-	lein figwheel dev
+	lein trampoline figwheel dev
 
 min:
-	lein cljsbuild auto min
+	lein trampoline cljsbuild auto min
 
 www: www/showkr.min.js www/style.css www/namespaced.css $(STATIC)
 
@@ -28,7 +28,7 @@ www/%: resources/public/%
 	cp $< $@
 
 www/showkr.min.js: $(shell find src -name '*.cljs')
-	lein cljsbuild once min
+	lein trampoline cljsbuild once min
 
 www/namespaced.css: www/style.css
 	./css-namespacer.py namespace $< > $@

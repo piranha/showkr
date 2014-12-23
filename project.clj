@@ -3,22 +3,22 @@
   :url "http://showkr.solovyov.net/"
 
   :plugins [[lein-cljsbuild "1.0.3"]
-            [lein-figwheel "0.1.7-SNAPSHOT"]
+            [lein-figwheel "0.2.0-SNAPSHOT"]
             [lein-npm "0.4.0"]]
 
-  :dependencies [[org.clojure/clojurescript "0.0-2411"]
+  :dependencies [[org.clojure/clojurescript "0.0-2511"]
                  [com.facebook/react "0.11.1"]
                  [quiescent "0.1.4"]
                  [datascript "0.7.1"]
                  [keybind "0.1.0"]]
 
-  :profiles {:dev {:dependencies [[figwheel "0.1.7-SNAPSHOT" :exclusions [org.clojure/core.async]]
+  :profiles {:dev {:dependencies [[figwheel "0.2.0-SNAPSHOT" :exclusions [org.clojure/core.async]]
                                   [org.clojure/clojure "1.6.0"]
                                   [org.clojure/core.async "0.1.346.0-17112a-alpha"]]}}
 
   :node-dependencies [[less "1.4.2"]]
 
-  :source-paths ["src"]
+  :source-paths ["src" "target/classes"]
 
   :cljsbuild {
     :builds [{:id "dev"
@@ -26,7 +26,8 @@
               :compiler {:output-to "resources/public/js/showkr.js"
                          :output-dir "resources/public/js/out"
                          :optimizations :none
-                         :source-map true}}
+                         :source-map true
+                         :cache-analysis true}}
              {:id "min"
               :source-paths ["src"]
               :compiler {
