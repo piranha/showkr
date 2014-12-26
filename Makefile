@@ -3,6 +3,9 @@ STATIC = $(SRC_STATIC:resources/public/%=www/%)
 
 .PHONY: www
 
+dev:
+	boot dev
+
 all: css fig
 
 fig:
