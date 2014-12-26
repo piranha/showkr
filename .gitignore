@@ -13,3 +13,4 @@ pom.xml
 /www/
 /node_modules/
 /.boot/
+/.nrepl*
