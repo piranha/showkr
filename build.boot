@@ -43,7 +43,8 @@
         (cljs :source-map true
               :optimizations :none
               :unified-mode true)
-        (less :source-map true)))
+        (less :source-map true)
+        (sift :exclude #{"\\.less$"})))
 
 (deftask prod
   "Compile production version"
@@ -54,4 +55,5 @@
                  :profile :production)
     (cljs :source-map false
           :optimizations :advanced)
-    (less :compression true)))
+    (less :compression true)
+    (sift :exclude #{"\\.less$" "^cljsjs/"})))
