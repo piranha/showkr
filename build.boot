@@ -31,7 +31,7 @@
   '[cljsjs.app :refer [from-cljsjs]])
 
 (deftask dev
-  "Development environment"
+  "Start development environment"
   []
   (comp (serve :dir "target"
                :port 3000)
@@ -46,8 +46,9 @@
         (less :source-map true)))
 
 (deftask prod
-  "Production version"
+  "Compile production version"
   []
+  (set-env! :target-path "prod")
   (comp
     (from-cljsjs :target "public"
                  :profile :production)
