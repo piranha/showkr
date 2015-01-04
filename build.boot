@@ -1,12 +1,12 @@
 #!/usr/bin/env boot
 
 (set-env!
-  :source-paths #{"src"}
+  :source-paths #{"src" "style"}
   :resource-paths #{"resources/public"}
-  :dependencies '[[adzerk/boot-cljs "0.0-2411-7" :scope "test"]
+  :dependencies '[[adzerk/boot-cljs "0.0-2629-1" :scope "test"]
                   [adzerk/boot-cljs-repl "0.1.7" :scope "test"]
-                  [adzerk/boot-reload "0.2.2" :scope "test"]
-                  [pandeiro/boot-http "0.3.0" :scope "test"]
+                  [adzerk/boot-reload "0.2.3" :scope "test"]
+                  [pandeiro/boot-http "0.4.1" :scope "test"]
 
                   [org.webjars/bootstrap "2.3.2"]
                   [deraen/boot-less "0.2.0" :scope "test"]
@@ -26,7 +26,7 @@
   '[adzerk.boot-cljs :refer [cljs]]
   '[adzerk.boot-cljs-repl :refer [cljs-repl start-repl]]
   '[adzerk.boot-reload :refer [reload]]
-  '[pandeiro.http :refer [serve]]
+  '[pandeiro.boot-http :refer [serve]]
   '[deraen.boot-less :refer [less]]
   '[cljsjs.app :refer [from-cljsjs]])
 
@@ -43,8 +43,7 @@
         (cljs :source-map true
               :optimizations :none
               :unified-mode true)
-        (less :source-map true)
-        (sift :exclude #{"\\.less$"})))
+        (less :source-map true)))
 
 (deftask prod
   "Compile production version"
@@ -56,4 +55,4 @@
     (cljs :source-map false
           :optimizations :advanced)
     (less :compression true)
-    (sift :exclude #{"\\.less$" "^cljsjs/"})))
+    (sift :exclude #{"^cljsjs/"})))
