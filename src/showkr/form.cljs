@@ -24,25 +24,18 @@
 
 (defn handle-submit [form setter]
   (when (or (:set form) (:user form))
-    (set! js/window.location
-      (cond
-        (re-matches #"^\d+$" (:set form ""))
-        (str "#" (:set form))
+    (let [match-value (:set form (str "user/" (:user form)))]
+      (set! js/window.location
+        (condp re-find match-value
+          #"^\d+$"            :>> #(str "#" (first %))
+          #"/sets/(\d+)/"     :>> #(str "#" (second %))
+          #"/in/album-(\d+)/" :>> #(str "#" (second %))
+          #"^user/.+"         :>> #(str "#" (first %))
 
-        (re-matches #"/sets/(\d+)/" (:set form ""))
-        (str "#"
-          (first (re-matches #"/sets/(\d+)/" (:set form))))
+          (do
+            (js/alert "Something wrong with your input")
+            "#"))))
 
-        (:user form)
-        (str "#user/" (:user form))
-
-        (:set form)
-        (do
-          (js/alert "Something wrong with your input")
-          "#")
-
-        :else
-        "#"))
     (setter {})))
 
 (q/defcomponent Form

@@ -109,78 +109,86 @@
 
 ;;; converters
 
+(defn skip-nils [value]
+  (into {} (filter (comp (complement nil?) second) value)))
+
 (defn set->local [set]
-  {:showkr/state :fetched
-   :showkr/date (now)
-   :set/id (set :id)
+  (skip-nils
+    {:showkr/state :fetched
+     :showkr/date (now)
+     :set/id (set :id)
 
-   :set/pages (set :pages)
-   :set/page (set :page)
-   :set/per-page (set :per_page)
-   :set/total (set :total)
+     :set/pages (set :pages)
+     :set/page (set :page)
+     :set/per-page (set :per_page)
+     :set/total (set :total)
 
-   :set/primary (set :primary)
-   :set/owner (set :owner)
+     :set/primary (set :primary)
+     :set/owner (set :owner)
 
-   :title (set :title)
-   :description (set :description)})
+     :title (set :title)
+     :description (set :description)}))
 
 (defn photo->local [photo idx]
-  {:showkr/state :fetched
-   :showkr/date (now)
-   :photo/order idx
-   :photo/id (photo :id)
+  (skip-nils
+    {:showkr/state :fetched
+     :showkr/date (now)
+     :photo/order idx
+     :photo/id (photo :id)
 
-   :flickr/farm (photo :farm)
-   :flickr/server (photo :server)
-   :photo/secret (photo :secret)
-   :photo/original-secret (photo :originalsecret)
-   :photo/original-format (photo :originalformat)
-   :photo/path-alias (photo :pathalias)
+     :flickr/farm (photo :farm)
+     :flickr/server (photo :server)
+     :photo/secret (photo :secret)
+     :photo/original-secret (photo :originalsecret)
+     :photo/original-format (photo :originalformat)
+     :photo/path-alias (photo :pathalias)
 
-   :title (photo :title)
-   :description (-> photo :description :_content)})
+     :title (photo :title)
+     :description (-> photo :description :_content)}))
 
 (defn comment->local [comment idx]
-  {:showkr/state :fetched
-   :showkr/date (now)
-   :comment/order idx
-   :comment/id (comment :id)
+  (skip-nils
+    {:showkr/state :fetched
+     :showkr/date (now)
+     :comment/order idx
+     :comment/id (comment :id)
 
-   :flickr/farm (comment :iconfarm)
-   :flickr/server (comment :iconserver)
-   :date/create (-> comment :datecreate parse-date)
-   :comment/author (comment :author)
-   :comment/author-name (comment :authorname)
-   :comment/real-name (comment :realname)
-   :comment/path-alias (comment :path_alias)
-   :comment/link (comment :permalink)
+     :flickr/farm (comment :iconfarm)
+     :flickr/server (comment :iconserver)
+     :date/create (-> comment :datecreate parse-date)
+     :comment/author (comment :author)
+     :comment/author-name (comment :authorname)
+     :comment/real-name (comment :realname)
+     :comment/path-alias (comment :path_alias)
+     :comment/link (comment :permalink)
 
-   :content (:_content comment)})
+     :content (:_content comment)}))
 
 (defn user->local [user]
-  {:showkr/state :fetched
-   :showkr/date (now)
-   :user/id (user :id)
+  (skip-nils
+    {:showkr/state :fetched
+     :showkr/date (now)
+     :user/id (user :id)
 
-   :user/name (-> user :username :_content)})
+     :user/name (-> user :username :_content)}))
 
 (defn user-set->local [set]
-  {:showkr/state :fetched
-   :showkr/date (now)
-   :userset/id (set :id)
+  (skip-nils
+    {:showkr/state :fetched
+     :showkr/date (now)
+     :userset/id (set :id)
 
-   :flickr/farm (set :farm)
-   :flickr/server (set :server)
-   :photo/secret (set :secret)
-   :date/update (-> set :date_update parse-date)
-   :date/create (-> set :date_create parse-date)
+     :flickr/farm (set :farm)
+     :flickr/server (set :server)
+     :photo/secret (set :secret)
+     :date/update (-> set :date_update parse-date)
+     :date/create (-> set :date_create parse-date)
 
-   :set/total (-> set :photos (js/parseInt 10)) ; + (set :videos)?
-   :set/primary (set :primary)
+     :set/total (-> set :photos (js/parseInt 10)) ; + (set :videos)?
+     :set/primary (set :primary)
 
-   :title (-> set :title :_content)
-   :description (-> set :description :_content)})
+     :title (-> set :title :_content)
+     :description (-> set :description :_content)}))
 
 ;;; data->db
 

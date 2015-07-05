@@ -1,12 +1,15 @@
 (ns showkr
-  (:require [cljs.reader :refer [read-string *tag-table*]]
-            [quiescent :as q :include-macros true]
+  (:require [cljsjs.react]
+            [cljs.reader :refer [read-string]]
+            [quiescent :as q]
             [quiescent.dom :as d]
             [datascript :as db]
 
             [showkr.data :as data]
             [showkr.utils :refer [get-route]]
             [showkr.root :refer [Root]]))
+
+(enable-console-print!)
 
 (def ^:private render-queued false)
 (defn ^:private actually-render []
@@ -48,8 +51,8 @@
 
     ;; kick off rendering
     (when-let [stored (.getItem js/window.localStorage "db")]
-      (swap! *tag-table* assoc "datascript/DB" db/db-from-reader)
       (reset! data/db (read-string stored)))
+
     (swap! data/opts merge
       {:target id :path (get-route)}
       (or opts {}))))

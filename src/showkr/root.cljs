@@ -8,15 +8,18 @@
             [showkr.viewing :refer [Set]]
             [showkr.browsing :refer [User]]))
 
-(defn simple-dict [db attr]
-  (let [eid (data/transact->eid! db {:db/id -1 attr {}})
-        getter #(attr (db/entity @db eid))]
+(defn simple-dict [db]
+  (let [eid (data/transact->eid! db {:db/id -1})
+        getter #(into {} (db/entity @db eid))]
     [getter
      (fn setter
-       ([v] (db/transact! db [[:db/add eid attr v]]))
-       ([k v] (setter (assoc (getter) k v))))]))
+       ([v]
+        (let [data (dissoc (getter) :db/id)]
+          (db/transact! db (for [[k v] data]
+                             [:db/retract eid k v]))))
+       ([k v] (db/transact! db [[:db/add eid k v]])))]))
 
-(let [[getter setter] (simple-dict data/db :form/data)]
+(let [[getter setter] (simple-dict data/db)]
   (q/defcomponent Root
     [{db :db, {:keys [path hide-title debug]} :opts}
      toggle-debug]
