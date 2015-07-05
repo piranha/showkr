@@ -56,9 +56,8 @@
 (deftask prod
   "Compile production version"
   []
-  (set-env! {:target-path "prod"})
+  (set-env! :target-path "prod")
   (comp
-    (cljs :source-map false
-          :optimizations :advanced
+    (cljs :optimizations :advanced
           :compiler-options {:warnings {:single-segment-namespace false}})
     (less :compression true)))

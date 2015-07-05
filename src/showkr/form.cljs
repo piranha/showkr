@@ -30,7 +30,7 @@
           #"^\d+$"            :>> #(str "#" (first %))
           #"/sets/(\d+)/"     :>> #(str "#" (second %))
           #"/in/album-(\d+)/" :>> #(str "#" (second %))
-          #"^user/.+"         :>> #(str "#" (first %))
+          #"^user/.+"         :>> #(str "#" %)
 
           (do
             (js/alert "Something wrong with your input")
