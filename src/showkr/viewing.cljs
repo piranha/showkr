@@ -85,7 +85,9 @@
           (d/a {:className "anchor"
                 :href (u/fmt "#%s/%s" set-id (:photo/id photo))} "#"))
 
-        (d/small {:rel "description"} (:description photo))
+        (d/small {:rel "description"
+                  :dangerouslySetInnerHTML
+                  (js-obj "__html" (:description photo))})
 
         (d/div {:className "row"}
           (d/div {:className "span8"}
